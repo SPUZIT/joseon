@@ -1,0 +1,1756 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<meta name="description" content="조선시대 어느 고을에서, 누구의 자식으로 태어날지 고를 수 없는 인생 시뮬레이션. 양반, 중인, 상민, 천민 중 하나로 태어나 한 사람의 일생을 끝까지 살아 봅니다.">
+<meta name="theme-color" content="#b3261e">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:site_name" content="조선 한 평생">
+<meta property="og:title" content="조선 한 평생 · 누구로 태어날까">
+<meta property="og:description" content="양반일까 노비일까. 조선시대에 무작위로 태어나 한 번뿐인 삶을 끝까지 살아 보는 신분 시뮬레이션.">
+<meta property="og:url" content="https://spuzit.github.io/joseon/">
+<meta property="og:image" content="https://spuzit.github.io/joseon/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://spuzit.github.io/joseon/">
+<title>조선 한 평생</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Song+Myung&display=swap">
+<style>
+/* Layout: one reading column. Top bar with brand + tabs, then a single screen at a time.
+   The life screen stacks a status plate, five stat bars, and a vertical year-by-year ledger. */
+:root{
+  --bg:#e8e6de; --panel:#f3f1ea; --ink:#1e2022; --mute:#65645d; --line:#cdc9ba;
+  --seal:#b3261e; --seal-ink:#fbf6ee; --blue:#2b6585; --green:#476f50; --gold:#9a7213; --track:#d8d4c6;
+  --f-display:'Song Myung','Batang','Noto Serif KR',serif;
+  --f-body:'Gowun Batang','Batang','Noto Serif KR',serif;
+  --f-ui:'Gowun Dodum','Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#121418; --panel:#1b1e24; --ink:#e9e4d6; --mute:#938f85; --line:#2d313a;
+    --seal:#d4483d; --seal-ink:#fff4ea; --blue:#63a8cc; --green:#82b58d; --gold:#d7b04a; --track:#2a2e36;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121418; --panel:#1b1e24; --ink:#e9e4d6; --mute:#938f85; --line:#2d313a;
+  --seal:#d4483d; --seal-ink:#fff4ea; --blue:#63a8cc; --green:#82b58d; --gold:#d7b04a; --track:#2a2e36;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--f-body); font-size:16px; line-height:1.7;
+  padding-block:0 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
+  word-break:keep-all; overflow-wrap:break-word;
+}
+.wrap{max-width:760px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;text-wrap:balance;margin:0}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--seal);outline-offset:2px}
+.ui{font-family:var(--f-ui)}
+.mute{color:var(--mute)}
+
+/* top bar */
+.topbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:16px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--f-display);font-size:22px;letter-spacing:.02em;margin-right:auto;background:none;border:0;padding:0}
+.tabs{display:flex;gap:2px}
+.tab{background:none;border:0;padding:6px 10px;font-family:var(--f-ui);font-size:14px;color:var(--mute);border-bottom:2px solid transparent}
+.tab[aria-current="page"]{color:var(--ink);border-bottom-color:var(--seal)}
+.theme{background:none;border:1px solid var(--line);border-radius:3px;padding:4px 9px;font-family:var(--f-ui);font-size:13px;color:var(--mute)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--ink);background:none;padding:10px 18px;font-family:var(--f-ui);font-size:15px;border-radius:2px}
+.btn:hover{background:var(--panel)}
+.btn.primary{background:var(--seal);border-color:var(--seal);color:var(--seal-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.small{padding:5px 11px;font-size:13px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+
+/* home */
+.hero{padding-block:44px 28px;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start}
+.hero h1{font-size:clamp(46px,11vw,92px);line-height:1.05;letter-spacing:-.01em}
+.hero .lead{margin-top:18px;max-width:34em;color:var(--mute)}
+.stamp{writing-mode:vertical-rl;text-orientation:upright;font-family:var(--f-display);font-size:22px;color:var(--seal);border:3px solid var(--seal);padding:12px 7px;transform:rotate(3deg);letter-spacing:.08em;line-height:1.15}
+.field{margin-top:26px}
+.field>.lab{font-family:var(--f-ui);font-size:13px;color:var(--mute);letter-spacing:.06em;margin-bottom:8px;display:block}
+.seg{display:flex;flex-wrap:wrap;gap:0;border:1px solid var(--line);width:fit-content;max-width:100%}
+.seg button{background:none;border:0;border-right:1px solid var(--line);padding:8px 14px;font-family:var(--f-ui);font-size:14px;color:var(--mute)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.dist{display:flex;height:30px;border:1px solid var(--line);overflow:hidden;margin-top:6px}
+.dist span{display:block;min-width:2px}
+.dist-key{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:10px;font-family:var(--f-ui);font-size:13px}
+.dist-key i{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px}
+.cb{display:flex;gap:10px;align-items:flex-start;font-family:var(--f-ui);font-size:14px;color:var(--mute);margin-top:18px}
+.cb input{margin-top:5px;accent-color:var(--seal)}
+.note-small{font-family:var(--f-ui);font-size:12.5px;color:var(--mute);margin-top:30px;max-width:42em;line-height:1.6}
+
+/* birth */
+.birth{padding-block:36px}
+.birth .kicker{font-family:var(--f-ui);font-size:13px;color:var(--mute);letter-spacing:.06em}
+.birth h2{font-size:clamp(30px,6vw,46px);margin:6px 0 20px}
+.sheet{border:1px solid var(--line);background:var(--panel)}
+.sheet dl{margin:0;display:grid;grid-template-columns:7.5em 1fr}
+.sheet dt,.sheet dd{margin:0;padding:11px 16px;border-bottom:1px solid var(--line)}
+.sheet dt{font-family:var(--f-ui);font-size:13px;color:var(--mute);letter-spacing:.05em;padding-top:14px}
+.sheet dd{min-height:3em}
+.sheet dt:nth-last-of-type(1),.sheet dd:last-of-type{border-bottom:0}
+.spin{color:var(--mute)}
+.pick{color:var(--seal)}
+
+/* life */
+.plate{display:flex;gap:16px;align-items:center;padding-block:18px 8px}
+.plate .stamp{font-size:20px;padding:10px 6px;border-width:2.5px}
+.plate .who{min-width:0}
+.plate .nm{font-family:var(--f-display);font-size:26px;line-height:1.25}
+.plate .meta{font-family:var(--f-ui);font-size:13.5px;color:var(--mute)}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 26px;padding-block:12px 4px}
+.stat{display:grid;grid-template-columns:3em 1fr 2.4em;gap:10px;align-items:center;font-family:var(--f-ui);font-size:13.5px}
+.bar{height:8px;background:var(--track)}
+.bar i{display:block;height:100%;background:var(--c);transition:width .5s}
+.stat b{font-weight:400;text-align:right;font-variant-numeric:tabular-nums;color:var(--mute)}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-block:14px;border-block:1px solid var(--line);margin-top:12px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5}
+.ctrl .sp{margin-left:auto}
+.ledger{list-style:none;margin:0;padding:0}
+.ledger li{display:grid;grid-template-columns:4.6em 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.ledger .a{font-family:var(--f-ui);font-size:13px;color:var(--mute);padding-top:3px;font-variant-numeric:tabular-nums}
+.ledger .t{min-width:0}
+.ledger .tag{display:inline-block;font-family:var(--f-ui);font-size:11.5px;letter-spacing:.06em;padding:0 6px;margin-right:6px;border:1px solid currentColor;vertical-align:1px}
+.ledger li.hist .tag{color:var(--seal)}
+.ledger li.pick .tag{color:var(--blue)}
+.ledger li.bad .tag{color:var(--seal)}
+.ledger li.status .tag{color:var(--gold)}
+.ledger li.new{animation:in .5s}
+@keyframes in{from{opacity:.2;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.ledger li.new{animation:none}.bar i{transition:none}}
+.fx{display:block;font-family:var(--f-ui);font-size:12.5px;color:var(--mute);margin-top:2px}
+
+.decide{border:1.5px solid var(--seal);background:var(--panel);padding:18px 18px 16px;margin-block:18px}
+.decide h3{font-size:24px;margin-bottom:6px}
+.decide .q{margin-bottom:14px}
+.opts{display:grid;gap:8px}
+.opt{text-align:left;border:1px solid var(--line);background:var(--bg);padding:11px 14px;font-family:var(--f-body);font-size:15.5px;line-height:1.5}
+.opt:hover{border-color:var(--ink)}
+.opt small{display:block;font-family:var(--f-ui);font-size:12.5px;color:var(--mute);margin-top:2px}
+.pause textarea{width:100%;min-height:68px;margin-block:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;padding:10px;resize:vertical}
+
+/* end */
+.epi{padding-block:36px 10px}
+.epi .stamp{float:right;margin:0 0 12px 18px}
+.epi h2{font-size:clamp(32px,7vw,52px);line-height:1.15}
+.epi .lines{margin-top:18px;font-size:18px;max-width:30em}
+.score{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:22px;font-family:var(--f-ui);font-size:14px}
+.score b{font-family:var(--f-display);font-weight:400;font-size:30px;display:block;line-height:1.2}
+.path{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-family:var(--f-ui);font-size:14px;margin-top:16px}
+.path span{border:1px solid var(--line);padding:2px 10px;background:var(--panel)}
+
+/* memorial */
+.mem{padding-block:30px}
+.mem h2{font-size:34px;margin-bottom:4px}
+.mlist{list-style:none;padding:0;margin:18px 0 0}
+.mlist li{border-top:1px solid var(--line);padding:14px 0;display:grid;grid-template-columns:1fr auto;gap:4px 16px}
+.mlist .nm{font-family:var(--f-display);font-size:21px}
+.mlist .sc{font-family:var(--f-display);font-size:26px;color:var(--seal);text-align:right}
+.mlist .sub{grid-column:1/-1;font-family:var(--f-ui);font-size:13.5px;color:var(--mute)}
+.mlist .ep{grid-column:1/-1}
+.about{padding-block:30px;max-width:40em}
+.about h2{font-size:32px;margin-bottom:12px}
+.about p{margin-bottom:12px}
+@media (max-width:520px){
+  .hero{grid-template-columns:1fr}.hero .stamp{display:none}
+  .stats{grid-template-columns:1fr}
+  .sheet dl{grid-template-columns:6em 1fr}
+  .ledger li{grid-template-columns:3.8em 1fr;gap:8px}
+}
+
+/* name, shop, toast, achievements */
+.nrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ninp{flex:1 1 11em;min-width:0;font:inherit;font-size:18px;padding:8px 10px;border:1px solid var(--ink);background:var(--bg);color:var(--ink);border-radius:2px}
+.ninp:disabled{border-color:var(--line);opacity:.6}
+.ninp::placeholder{color:var(--mute);opacity:.8}
+.hint{font-family:var(--f-ui);font-size:12.5px;color:var(--mute);margin-top:6px}
+.shop{border:1px solid var(--line);background:var(--panel);padding:14px 16px;margin-top:14px}
+.shophead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.shophead h3{font-size:24px;margin-right:auto}
+.coin{font-family:var(--f-display);font-size:20px;color:var(--gold)}
+.items{list-style:none;margin:6px 0 0;padding:0;max-height:52vh;overflow-y:auto}
+.items li{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line)}
+.iinfo{min-width:0}
+.iname{font-size:16px}
+.idesc{font-family:var(--f-ui);font-size:12.5px;color:var(--mute);line-height:1.5}
+.items .btn{flex:none;min-width:4.5em;justify-content:center}
+.items .btn:disabled{opacity:.45;cursor:not-allowed}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));max-width:calc(100% - 32px);background:var(--ink);color:var(--bg);font-family:var(--f-ui);font-size:14px;padding:10px 18px;border-radius:2px;z-index:20;box-shadow:0 4px 18px rgba(0,0,0,.25)}
+.alist{list-style:none;margin:18px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(15em,1fr));gap:10px}
+.alist li{border:1px solid var(--line);padding:12px 14px;opacity:.55;min-width:0}
+.alist li.got{opacity:1;background:var(--panel);border-color:var(--seal)}
+.aname{font-family:var(--f-display);font-size:19px}
+.alist li.got .aname{color:var(--seal)}
+.adesc{font-family:var(--f-ui);font-size:13px;color:var(--mute);margin-top:2px}
+.astate{font-family:var(--f-ui);font-size:12px;color:var(--mute);margin-top:8px}
+.newach{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.newach li{font-family:var(--f-ui);font-size:14px}
+.newach b{font-weight:400;color:var(--seal);margin-right:8px;font-family:var(--f-display);font-size:17px}
+.newach span{color:var(--mute)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <button class="brand" id="brand" type="button">조선 한 평생</button>
+    <nav class="tabs" aria-label="메뉴">
+      <button class="tab" type="button" data-go="home" aria-current="page">홈</button>
+      <button class="tab" type="button" data-go="life">이번 생</button>
+      <button class="tab" type="button" data-go="mem">추모관</button>
+      <button class="tab" type="button" data-go="ach">업적</button>
+      <button class="tab" type="button" data-go="about">안내</button>
+    </nav>
+    <button class="theme" id="themeBtn" type="button" aria-label="밝기 바꾸기">밝게·어둡게</button>
+  </header>
+
+  <main>
+    <!-- 홈 -->
+    <section id="s-home">
+      <div class="hero">
+        <div>
+          <h1>조선<br>한 평생</h1>
+          <p class="lead">어느 고을에서, 누구의 자식으로 태어날지는 고를 수 없습니다. 양반집 도령일 수도, 남의 집 노비일 수도 있습니다. 태어난 신분 안에서 한 사람의 일생을 끝까지 살아 봅니다.</p>
+        </div>
+        <div class="stamp" aria-hidden="true">조선인생</div>
+      </div>
+
+      <div class="field">
+        <span class="lab">태어날 시대</span>
+        <div class="seg" id="eraSeg" role="group" aria-label="태어날 시대">
+          <button type="button" data-era="early" aria-pressed="false">전기 1450~1550</button>
+          <button type="button" data-era="mid" aria-pressed="false">중기 1550~1700</button>
+          <button type="button" data-era="late" aria-pressed="false">후기 1700~1860</button>
+          <button type="button" data-era="any" aria-pressed="true">아무 때나</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <span class="lab" id="distLab">이 시대에 태어나는 아이의 신분</span>
+        <div class="dist" id="dist" role="img" aria-labelledby="distLab"></div>
+        <div class="dist-key" id="distKey"></div>
+      </div>
+
+      <label class="cb" for="skipKid">
+        <input type="checkbox" id="skipKid">
+        <span>영유아기는 건너뛰고 일곱 살부터 시작합니다. 끄면 갓난아기 때부터 살며, 이 시절의 사망률은 당시 기록처럼 높습니다.</span>
+      </label>
+
+      <div class="row" style="margin-top:26px">
+        <button class="btn primary" id="btnStart" type="button">새로운 인생 시작 →</button>
+        <span class="mute ui" id="homeNote" style="font-size:13.5px"></span>
+      </div>
+
+      <p class="note-small">신분 비율과 사건은 호적대장 연구와 조선왕조실록에 알려진 내용을 바탕으로 한 대략치이며, 장면은 이야기를 위해 단순화했습니다. 노비 매매, 굶주림, 전쟁 같은 무거운 일도 나오지만 잔혹한 장면은 그리지 않습니다.</p>
+    </section>
+
+    <!-- 태어남 -->
+    <section id="s-birth" hidden>
+      <div class="birth">
+        <div class="kicker">호구단자에 오릅니다</div>
+        <h2>당신은 이렇게 태어났습니다</h2>
+        <div class="sheet">
+          <dl>
+            <dt>때</dt><dd id="b-era"></dd>
+            <dt>곳</dt><dd id="b-place"></dd>
+            <dt>신분</dt><dd id="b-status"></dd>
+            <dt>집안</dt><dd id="b-home"></dd>
+            <dt>성별</dt><dd id="b-sex"></dd>
+            <dt><label for="nameIn">이름</label></dt>
+            <dd id="b-name">
+              <div class="nrow">
+                <input id="nameIn" class="ninp" type="text" maxlength="8" autocomplete="off" spellcheck="false" placeholder="이름을 지어 주세요" disabled>
+                <button class="btn small" id="btnSuggest" type="button" disabled>다른 이름 추천</button>
+              </div>
+              <div class="hint">여덟 글자까지 쓸 수 있습니다. 비워 두면 흐릿하게 보이는 이름으로 살아갑니다.</div>
+            </dd>
+          </dl>
+        </div>
+        <div class="row" style="margin-top:22px">
+          <button class="btn primary" id="btnLive" type="button" disabled>이 이름으로 살기</button>
+        </div>
+        <p class="note-small">시대와 신분과 성별은 고를 수 없습니다. 이름만 직접 지을 수 있습니다.</p>
+      </div>
+    </section>
+
+    <!-- 이번 생 -->
+    <section id="s-life" hidden>
+      <div class="plate">
+        <div class="stamp" id="l-stamp" aria-hidden="true"></div>
+        <div class="who">
+          <div class="nm" id="l-name"></div>
+          <div class="meta" id="l-meta"></div>
+          <div class="meta" id="l-coin"></div>
+        </div>
+      </div>
+      <div class="stats" id="stats"></div>
+      <div class="ctrl">
+        <button class="btn small" id="btnPlay" type="button">일시정지</button>
+        <div class="seg" id="speedSeg" role="group" aria-label="속도">
+          <button type="button" data-sp="1" aria-pressed="true">1배</button>
+          <button type="button" data-sp="2" aria-pressed="false">2배</button>
+          <button type="button" data-sp="4" aria-pressed="false">4배</button>
+        </div>
+        <button class="btn small" id="btnNext" type="button">한 해 넘기기</button>
+        <button class="btn small" id="btnShop" type="button" aria-expanded="false" aria-controls="shop">장터</button>
+        <span class="sp mute ui" id="l-year" style="font-size:13px"></span>
+      </div>
+      <div id="shop" class="shop" hidden>
+        <div class="shophead">
+          <h3>장터</h3>
+          <span class="coin" id="shopCoin"></span>
+          <button class="btn small" id="btnShopClose" type="button">닫기</button>
+        </div>
+        <p class="mute ui" id="shopOwn" style="font-size:13px;margin:6px 0 4px"></p>
+        <ul class="items" id="shopList"></ul>
+      </div>
+      <div id="decide" aria-live="polite"></div>
+      <ol class="ledger" id="ledger"></ol>
+    </section>
+
+    <!-- 끝 -->
+    <section id="s-end" hidden>
+      <div class="epi">
+        <div class="stamp" id="e-stamp" aria-hidden="true"></div>
+        <div class="mute ui" id="e-kicker" style="font-size:13.5px"></div>
+        <h2 id="e-title"></h2>
+        <p class="lines" id="e-lines"></p>
+        <div class="path" id="e-path"></div>
+        <div class="score" id="e-score"></div>
+        <div class="stats" id="e-stats" style="margin-top:18px"></div>
+        <div id="e-notes"></div>
+        <div class="row" style="margin-top:24px">
+          <button class="btn primary" id="btnAgain" type="button">다시 태어나기</button>
+          <button class="btn" id="btnToMem" type="button">추모관 보기</button>
+          <button class="btn" id="btnCopy" type="button">이 삶 복사하기</button>
+        </div>
+        <p class="note-small" id="copyMsg" role="status"></p>
+      </div>
+    </section>
+
+    <!-- 추모관 -->
+    <section id="s-mem" hidden>
+      <div class="mem">
+        <h2>추모관</h2>
+        <p class="mute ui" style="font-size:14px">지나간 생이 이 브라우저에만 남습니다. 점수가 높은 순서로 보입니다.</p>
+        <ol class="mlist" id="mlist"></ol>
+        <div class="row" style="margin-top:20px">
+          <button class="btn small" id="btnClear" type="button">기록 모두 지우기</button>
+          <span class="mute ui" id="clearMsg" style="font-size:13px"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 업적 -->
+    <section id="s-ach" hidden>
+      <div class="mem">
+        <h2>업적</h2>
+        <p class="mute ui" style="font-size:14px">달성한 업적은 이 브라우저에 남습니다. <span id="acount"></span> 달성</p>
+        <ul class="alist" id="alist"></ul>
+      </div>
+    </section>
+
+    <!-- 안내 -->
+    <section id="s-about" hidden>
+      <div class="about">
+        <h2>안내</h2>
+        <p>태어날 때 신분, 성별, 고을이 정해지고, 한 해에 한 번씩 나이가 듭니다. 도중에 선택이 필요한 일이 생기면 시간이 멈춥니다. 선택은 삶을 바꾸지만, 태어난 집안의 무게를 완전히 벗어나기는 어렵습니다.</p>
+        <p>신분은 양반, 중인, 상민, 천민 네 갈래입니다. 시대마다 비율이 달라서, 후기로 갈수록 양반이 늘고 노비가 줄어듭니다. 공명첩, 족보 사들이기, 속량, 도망 같은 신분 이동도 일어날 수 있습니다.</p>
+        <p>벌이에 따라 엽전이 쌓이고, 「이번 생」 화면의 장터에서 약, 서책, 땅, 소, 기와집 같은 물건을 살 수 있습니다. 땅과 소는 해마다 수입을 늘려 줍니다. 장원 급제나 공노비 해방 같은 업적은 업적 탭에 모입니다.</p>
+        <p>건강, 학식, 재물, 명예, 인연 다섯 가지 수치가 일생의 점수를 정합니다. 죽음은 나이, 신분, 건강, 흉년과 전란에 따라 찾아옵니다.</p>
+        <p class="mute ui" style="font-size:13.5px">사건과 확률은 재미를 위해 단순화한 설정이며 역사적 사실을 그대로 옮긴 것이 아닙니다.</p>
+      </div>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</div>
+<script>
+/* ---------- helpers ---------- */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const rnd=(a,b)=>a+Math.random()*(b-a), ri=(a,b)=>Math.floor(rnd(a,b+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const clamp=(v,a=0,b=100)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+function wpick(items){ // [[value,weight],...]
+  const tot=items.reduce((n,i)=>n+i[1],0); let r=Math.random()*tot;
+  for(const [v,w] of items){ if((r-=w)<=0) return v; } return items[items.length-1][0];
+}
+const jong=(s)=>{ // 받침 여부로 조사 고르기
+  const c=s.charCodeAt(s.length-1)-0xAC00; return c>=0&&c<=11171&&c%28!==0;
+};
+const josa=(w,a,b)=>w+(jong(w)?a:b); // josa('돌쇠','이','가')
+
+/* ---------- constants ---------- */
+const STATS=[
+  ['health','건강','var(--green)'],['learn','학식','var(--blue)'],['wealth','재물','var(--gold)'],
+  ['honor','명예','var(--seal)'],['bond','인연','var(--mute)']
+];
+const ST={
+  yangban:{k:'양반',r:3,c:'var(--seal)',mort:.8},
+  jungin:{k:'중인',r:2,c:'var(--blue)',mort:.9},
+  sangmin:{k:'상민',r:1,c:'var(--green)',mort:1},
+  cheonmin:{k:'천민',r:0,c:'var(--mute)',mort:1.25}
+};
+const OFFICES=['','말단 관원(종9품)','참하관(7품)','참상관(6품)','당하관(정4품)','당상관(정3품)','판서(정2품)','정승(정1품)'];
+const ERAS={early:[1450,1550,'전기'],mid:[1550,1700,'중기'],late:[1700,1860,'후기'],any:[1450,1860,'아무 때나']};
+const KINGS=[[1418,'세종'],[1450,'문종'],[1452,'단종'],[1455,'세조'],[1468,'예종'],[1469,'성종'],[1494,'연산군'],[1506,'중종'],[1544,'인종'],[1545,'명종'],[1567,'선조'],[1608,'광해군'],[1623,'인조'],[1649,'효종'],[1659,'현종'],[1674,'숙종'],[1720,'경종'],[1724,'영조'],[1776,'정조'],[1800,'순조'],[1834,'헌종'],[1849,'철종'],[1863,'고종']];
+function kingAt(y){ let k=KINGS[0]; for(const e of KINGS){ if(y>=e[0]) k=e; } return {name:k[1],n:y-k[0]+1}; }
+const yearText=y=>{const k=kingAt(y);return `${k.name} ${k.n===1?'원':k.n}년(${y})`};
+const ageText=a=>a<1?'갓난아기':`${a}세`;
+
+/* ---------- 신분 비율 (호적대장 연구의 대략치: 17세기 말 양반 약 1할, 노비 약 4할 → 19세기 중반 양반 약 절반, 노비 소수) ---------- */
+function distAt(y){
+  const t=clamp((y-1650)/210,0,1);
+  const ch=lerp(.38,.03,t), ya=lerp(.08,.45,t), ju=lerp(.04,.05,t);
+  return {yangban:ya,jungin:ju,sangmin:1-ch-ya-ju,cheonmin:ch};
+}
+function distEra(key){
+  const [a,b]=ERAS[key]; const out={yangban:0,jungin:0,sangmin:0,cheonmin:0}; let n=0;
+  for(let y=a;y<b;y+=10){ const d=distAt(y); for(const k in out) out[k]+=d[k]; n++; }
+  for(const k in out) out[k]/=n; return out;
+}
+
+/* ---------- 고을 ---------- */
+const REGIONS=[
+  ['한성',3,['북촌','남촌','광통교 근처','서소문 밖','동대문 안']],
+  ['경기',8,['수원','강화','양주','여주','개성']],
+  ['충청',14,['공주','청주','충주','홍주','서산']],
+  ['전라',19,['전주','나주','남원','순천','해남']],
+  ['경상',21,['안동','상주','진주','대구','경주']],
+  ['강원',5,['원주','강릉','춘천','철원']],
+  ['황해',7,['해주','황주','재령']],
+  ['평안',13,['평양','의주','안주','정주']],
+  ['함경',6,['함흥','경성','회령']]
+];
+function genPlace(){
+  const r=wpick(REGIONS.map(x=>[x,x[1]])); return {region:r[0],town:pick(r[2])};
+}
+
+/* ---------- 이름 ---------- */
+const YB_SUR=[['안동','김'],['경주','김'],['전주','이'],['한산','이'],['파평','윤'],['광산','김'],['달성','서'],['풍양','조'],['여흥','민'],['밀양','박'],['진주','강'],['청송','심']];
+const M_YB=['세민','광조','학수','응현','시열','효원','명준','인보','두성','경하','치용','도형'];
+const F_YB=['연화','소혜','난정','옥영','정희','서란','매죽'];
+const M_JI=['순보','덕만','현수','인수','만수','득호','계원'];
+const F_JI=['순덕','옥분','매화','월향','계화'];
+const SUR_C=['김','이','박','최','정','장','조','한','오','임'];
+const M_SA=['막동','돌이','덕봉','귀동','판돌','태복','끝동','삼복'];
+const F_SA=['순이','막례','분이','복순','갑례','영순'];
+const M_CH=['돌쇠','개똥이','마당쇠','억쇠','업동','삼돌','갑쇠','쇠똥'];
+const F_CH=['분이','언년이','귀련','끝순','삼월','막덕'];
+
+/* ---------- 태어남 ---------- */
+const HOMES={
+  yangban:[['gate','명문가 문중','대대로 과거 급제자를 낸 문중의 집입니다. 사랑채에 책이 가득합니다.',25],
+           ['hyang','시골 향반 집','고을에서 알아주는 양반이지만 벼슬은 몇 대째 끊겼습니다. 논밭이 살림의 바탕입니다.',45],
+           ['jan','몰락한 양반 집','양반이라는 이름만 남았습니다. 끼니를 걱정하면서도 체면은 지켜야 합니다.',30]],
+  jungin:[['yeok','역관 집안','중국어와 일본어를 다루는 역관 집안입니다. 사행길에 따라가 무역으로 재물을 만들기도 합니다.',30],
+          ['eui','의원 집안','대대로 의관으로 일해 온 집안입니다. 약재 냄새가 배어 있습니다.',25],
+          ['seo','아전 집안','관아에서 문서와 실무를 맡아 온 서리 집안입니다. 고을 사정을 속속들이 압니다.',45]],
+  sangmin:[['own','자작농 집','작지만 내 땅을 가진 농가입니다. 풍흉에 따라 살림이 오르내립니다.',25],
+           ['ten','소작농 집','지주의 땅을 부쳐 수확의 절반을 바칩니다. 봄이면 곡식이 떨어집니다.',40],
+           ['craft','장인 집','대장간이나 옹기 가마, 길쌈으로 살아가는 집입니다.',12],
+           ['trade','장사꾼 집','장시를 돌며 물건을 파는 집입니다. 돈은 돌지만 사농공상에서는 아래입니다.',13],
+           ['fish','어촌 집','배와 그물로 사는 포구 마을의 집입니다.',10]],
+  cheonmin:[['solgeo','솔거노비','주인집에 함께 살며 부엌과 마당 일을 맡습니다. 이름은 주인이 지어 불렀습니다.',35],
+            ['oegeo','외거노비','주인 땅을 부치며 따로 삽니다. 해마다 신공을 바쳐야 합니다.',30],
+            ['gong','공노비','관아에 이름이 올라 있습니다. 나라의 일에 불려 다닙니다.',15],
+            ['baek','백정 집','소를 잡고 고기를 다루는 일로 살아갑니다. 마을 사람들은 길을 비켜 갑니다.',10],
+            ['jaein','재인 집','줄타기와 소리로 먹고사는 광대 집안입니다. 잔칫집을 따라 떠돕니다.',10]]
+};
+function genLife(eraKey,skipKid){
+  const [a,b]=ERAS[eraKey]; const year=ri(a,b-1);
+  const d=distAt(year);
+  const status=wpick(Object.entries(d));
+  const sex=Math.random()<.5?'m':'f';
+  const home=wpick(HOMES[status].map(h=>[h,h[3]]));
+  const pl=genPlace();
+  const nmr=makeName(status,sex,home[0]); const nm=nmr.nm, short=nmr.short, hon=nmr.hon;
+  const base={health:ri(46,72),learn:0,wealth:0,honor:0,bond:ri(30,52)};
+  const k=home[0];
+  const ST0={yangban:[34,56,48],jungin:[28,52,24],sangmin:[8,28,14],cheonmin:[2,8,0]}[status];
+  base.learn=ST0[0]+ri(-6,8); base.wealth=ST0[1]+ri(-8,8); base.honor=ST0[2]+ri(-4,6);
+  if(k==='gate'){base.wealth+=18;base.honor+=26;base.learn+=10}
+  if(k==='jan'){base.wealth-=28;base.honor-=18}
+  if(k==='ten'){base.wealth-=10}
+  if(k==='trade'){base.wealth+=10}
+  if(k==='oegeo'){base.wealth+=8}
+  if(k==='baek'||k==='jaein'){base.bond-=10;base.honor-=4}
+  for(const x in base) base[x]=clamp(Math.round(base[x]));
+  return {
+    name:nm, short, suggest:nm, suggestShort:short, coin:Math.round(base.wealth/5)+ri(0,3), items:{}, bought:0, peakCoin:0, newAch:[], sex, status, home:k, homeName:home[1], homeText:home[2], honName:hon,
+    region:pl.region, town:pl.town, birthYear:year, year, age:skipKid?7:0, startStatus:status,
+    stats:base, office:0, children:0, married:false, flags:{}, used:{}, notes:[], path:[status],
+    log:[], alive:true, crisis:0, skip:!!skipKid, deathCause:'', events:[], peak:{}
+  };
+}
+/* ---------- 사건 데이터 1: 어린 시절, 청년기, 신분 이동 ----------
+   fx 키: h 건강, l 학식, w 재물, o 명예, b 인연
+   outcome: p(확률 가중치, 숫자 또는 함수) r(문장) fx set(플래그) st(새 신분) die(사망 원인) off(관직 증감) mar(혼인) */
+const E=[];
+const N=s=>s.short, I=s=>josa(s.short,'이','가'), U=s=>josa(s.short,'은','는');
+const isMale=s=>s.sex==='m', isFem=s=>s.sex==='f';
+const hi=s=>s.status==='yangban'||s.status==='jungin';
+const sl=s=>s.status==='cheonmin'&&['solgeo','oegeo','gong'].includes(s.home);
+
+E.push({id:'pox',min:1,max:8,w:5,t:'마마(천연두)',
+  x:s=>`${I(s)} 열이 펄펄 끓더니 온몸에 붉은 반점이 돋았습니다. 마마입니다. 온 집안이 숨을 죽입니다.`,
+  c:[
+    {l:'의원을 불러 약을 쓴다',d:'재물이 든다',o:[
+      {p:s=>.84+s.stats.health/600,r:s=>`${N(s)}는 마마를 이겨 냈습니다. 얼굴에 곰보 자국이 몇 개 남았습니다.`,fx:{h:-3,w:-8,b:3},set:{pox:1}},
+      {p:.12,die:'마마(천연두)',fx:{w:-8}}]},
+    {l:'무당을 불러 굿을 한다',d:'마을에서 흔한 방법',o:[
+      {p:.77,r:s=>`굿이 끝나고 사흘 뒤 열이 내렸습니다. ${N(s)}는 살아났습니다.`,fx:{h:-4,w:-4,b:4},set:{pox:1}},
+      {p:.23,die:'마마(천연두)'}]},
+    {l:'조용히 눕혀 두고 지켜본다',o:[
+      {p:s=>.72+s.stats.health/500,r:s=>`${N(s)}의 몸이 마마를 버텨 냈습니다.`,fx:{h:-5,b:2},set:{pox:1}},
+      {p:.24,die:'마마(천연두)'}]}
+  ]});
+
+E.push({id:'hungry',min:2,max:13,w:5,when:s=>s.stats.wealth<32,repeat:2,t:'춘궁기',
+  x:s=>`봄이 되자 독 안의 곡식이 바닥났습니다. 보리가 익으려면 아직 한 달이 남았습니다.`,
+  o:[{p:.65,r:s=>`나물죽으로 한 달을 버텼습니다. ${N(s)}의 볼이 홀쭉해졌습니다.`,fx:{h:-7}},
+     {p:.35,r:'이웃 어른들이 곡식을 한 바가지씩 나눠 주었습니다.',fx:{b:6,h:-2}}]});
+
+E.push({id:'seodang',min:6,max:9,w:9,when:s=>isMale(s)&&hi(s),t:'서당',
+  x:s=>`${N(s)}의 아버지가 서당에 말을 넣었습니다. 천자문을 외우는 첫날입니다.`,
+  c:[{l:'하늘 천 따 지, 매일 외운다',o:[
+      {p:.7,r:'글자가 머리에 쏙쏙 들어왔고 훈장님이 칭찬했습니다.',fx:{l:13,o:2}},
+      {p:.3,r:'종아리를 맞아 가며 겨우 따라갔습니다.',fx:{l:8,h:-1}}]},
+     {l:'글보다 개울가가 좋다',o:[{p:1,r:'훈장님 몰래 빠져나가 가재를 잡았습니다. 공부는 더뎠지만 몸은 튼튼해졌습니다.',fx:{l:3,h:4,b:4}}]}]});
+
+E.push({id:'seodang_s',min:6,max:11,w:6,when:s=>isMale(s)&&s.status==='sangmin',once:true,t:'서당 문 앞',
+  x:s=>`서당 문 앞을 지날 때마다 ${N(s)}의 발이 느려집니다. 안에서 글 읽는 소리가 흘러나옵니다.`,
+  c:[{l:'창 밑에서 귀동냥을 한다',o:[{p:.55,r:'몇 해 동안 어깨너머로 배워 제 이름자와 숫자를 익혔습니다.',fx:{l:10},set:{literate:1}},{p:.45,r:'훈장님에게 들켜 쫓겨났습니다.',fx:{l:3,o:-1}}]},
+     {l:'아버지를 따라 밭에 나간다',o:[{p:1,r:'낫질과 쟁기질을 일찍 익혔습니다.',fx:{w:5,h:3}}]}]});
+
+E.push({id:'seodang_c',min:6,max:12,w:5,when:s=>s.status==='cheonmin',once:true,t:'귀동냥',
+  x:s=>`주인집 도령이 마루에서 글을 읽는 동안 ${N(s)}는 마당을 쓸며 소리를 듣습니다.`,
+  o:[{p:.2,r:s=>`${N(s)}는 마당의 흙에 막대로 글자를 따라 써 보았습니다. 글을 읽을 줄 알게 되었습니다.`,fx:{l:10},set:{literate:1}},
+     {p:.8,r:'눈치와 손끝만 빨라졌습니다.',fx:{b:2,h:-1}}]});
+
+E.push({id:'girl_home',min:6,max:12,w:8,when:s=>isFem(s)&&hi(s),once:true,t:'안방의 공부',
+  x:s=>`${N(s)}에게 바깥 서당은 없습니다. 어머니가 안방에서 가르칠 것을 정해 줍니다.`,
+  c:[{l:'바느질과 수놓기를 익힌다',o:[{p:1,r:'솜씨가 좋다는 소문이 이웃 집까지 났습니다.',fx:{l:4,w:4,o:3}}]},
+     {l:'언문으로 이야기책을 읽는다',o:[{p:1,r:'한글을 깨치고 필사본 이야기책을 밤새 읽었습니다.',fx:{l:11,b:2}},]}]});
+
+E.push({id:'girl_work',min:6,max:12,w:7,when:s=>isFem(s)&&!hi(s),once:true,t:'길쌈과 부엌',
+  x:s=>`${N(s)}의 손은 벌써 베틀 앞에 앉기 시작했습니다.`,
+  o:[{p:1,r:'어머니 곁에서 길쌈과 부엌일을 익혔습니다. 손끝이 거칠어졌습니다.',fx:{w:5,h:-1}}]});
+
+E.push({id:'friend',min:7,max:14,w:4,t:'동무',
+  x:s=>`동네 동무들이 ${josa(N(s),'을','를')} 부릅니다. 개울가로 나가자는 것입니다.`,
+  o:[{p:1,r:'연을 날리고 개울에서 멱을 감았습니다. 해가 질 때까지 웃었습니다.',fx:{b:7,h:3}}]});
+
+E.push({id:'sold',min:8,max:15,w:4,when:s=>s.status==='cheonmin'&&['solgeo','oegeo'].includes(s.home),once:true,t:'주인집의 일',
+  x:s=>`주인집에 돈이 필요해졌다는 소문이 안채 마당에 돕니다. 노비 문서가 상속과 매매의 대상이던 때입니다.`,
+  o:[{p:.5,r:'다른 집으로 팔려 가는 이웃 아이를 보았습니다. 다음에는 누구일지 알 수 없습니다.',fx:{b:-8,h:-2}},
+     {p:.5,r:'마님이 곁에 두고 심부름을 시켰습니다. 불안한 가운데도 조금 편해졌습니다.',fx:{b:4,o:1}}]});
+
+E.push({id:'gwangi',min:11,max:16,w:6,when:s=>isFem(s)&&['gong','jaein'].includes(s.home),once:true,t:'관아의 부름',
+  x:s=>`관아에서 사람이 나와 ${N(s)}를 한번 보고 갔습니다. 소리와 춤을 가르치려 아이를 뽑아 가려 한다고 합니다.`,
+  c:[{l:'순순히 따라가 가야금과 소리를 익힌다',o:[
+      {p:.6,r:'엄한 스승 밑에서 가야금과 소리를 배워 고을에서 이름이 났습니다.',fx:{l:6,o:6,w:6,b:2},set:{arts:1}},
+      {p:.4,r:'혹독한 수련에 몸이 상했지만 재주만은 몸에 남았습니다.',fx:{h:-7,l:5},set:{arts:1}}]},
+     {l:'밤에 몰래 고을을 빠져나간다',d:'붙잡히면 큰 벌이 따릅니다',o:[
+      {p:.35,r:'멀리 낯선 고을까지 흘러가 신분을 숨기고 새 삶을 시작했습니다.',st:'sangmin',fx:{b:-12,o:-4},set:{hidden:1}},
+      {p:.65,r:'잡혀 와 매를 맞았습니다.',fx:{h:-12,o:-4}}]}]});
+
+E.push({id:'marriage',min:14,max:21,w:12,when:s=>!s.married,once:true,t:'혼인 이야기',
+  x:s=>{
+    if(s.status==='cheonmin') return `${N(s)}의 나이가 차자 짝 이야기가 나옵니다. ${sl(s)?'주인집에서 맞는 짝을 고른다고 합니다.':'이웃 마을에서 중매가 들어왔습니다.'}`;
+    if(s.status==='yangban') return `집안에서 혼처가 오갑니다. 문벌과 재산을 따지는 중매가 이어집니다.`;
+    return `이웃 마을에서 중매쟁이가 찾아와 혼담을 꺼냈습니다.`;
+  },
+  c:[{l:'부모님이 정한 혼처를 따른다',o:[
+      {p:.65,r:s=>`혼인했습니다. 첫 만남은 어색했지만 살면서 정이 쌓였습니다.`,mar:1,fx:{b:8,w:s=>0,o:2}},
+      {p:.35,r:s=>`혼인은 했지만 두 사람은 오래 서먹했습니다.`,mar:1,fx:{b:1,o:2}}]},
+     {l:'혼인을 미룬다',d:s=>s.sex==='f'?'딸의 혼기를 넘기면 말이 많아집니다':'학문이나 일을 먼저 이룬 뒤에',o:[
+      {p:1,r:s=>s.sex==='f'?'혼기를 넘긴다고 이웃의 말이 많았습니다.':'혼담을 물리고 일에 몰두했습니다.',fx:{b:-3,l:s=>0,o:s=>s.sex==='f'?-3:0}}]}]});
+
+E.push({id:'marriage2',min:22,max:32,w:12,when:s=>!s.married,once:true,t:'늦은 혼인',
+  x:s=>`혼기를 한참 넘기자 집안 어른들이 다시 혼처를 알아봤습니다.`,
+  o:[{p:1,r:'늦게나마 혼인했습니다.',mar:1,fx:{b:6}}]});
+
+E.push({id:'exam_small',min:16,max:36,w:11,repeat:6,when:s=>isMale(s)&&s.status==='yangban'&&!s.flags.saenwon&&!s.flags.giveup,t:'소과 시험',
+  x:s=>`생원시와 진사시, 이른바 소과의 초시가 열린다는 방이 붙었습니다. ${N(s)}는 몇 해째 글을 파고 있습니다.`,
+  c:[{l:'초시에 응시한다',d:'학식이 높을수록 합격 확률이 오릅니다',o:[
+      {p:s=>clamp(.12+(s.stats.learn-30)/150,.04,.6),r:s=>`${N(s)}의 이름이 방에 올랐습니다. 생원시에 합격해 성균관에 들어갈 자격을 얻었습니다.`,fx:{o:14,l:4,w:-3},set:{saenwon:1}},
+      {p:s=>1-clamp(.12+(s.stats.learn-30)/150,.04,.6),r:'낙방했습니다. 이름이 없는 방을 한참 바라보다 돌아섰습니다.',fx:{o:-1,l:3,w:-3,h:-1}}]},
+     {l:'과거를 접고 향촌에서 후학을 가르친다',o:[{p:1,r:'서당을 열고 이웃 아이들에게 글을 가르치기 시작했습니다.',fx:{l:3,b:6,w:3,o:3},set:{giveup:1,teacher:1}}]},
+     {l:'과거를 접고 집안 농사를 돌본다',o:[{p:1,r:'책을 덮고 논밭을 돌보았습니다. 살림이 한결 나아졌습니다.',fx:{w:8,h:3,l:-2},set:{giveup:1}}]}]});
+
+E.push({id:'exam_great',min:24,max:46,w:11,repeat:6,when:s=>isMale(s)&&s.flags.saenwon&&!s.flags.munkwa&&!s.flags.giveup,t:'대과',
+  x:s=>`문과의 방이 붙었습니다. 식년시에 급제하면 벼슬길이 열립니다. 합격자는 한 번에 서른 명 남짓입니다.`,
+  c:[{l:'문과에 응시한다',d:'대과는 소과보다 훨씬 좁은 문입니다',o:[
+      {p:s=>clamp((s.stats.learn-62)/500,0,.06),r:s=>`${N(s)}는 문과에서 장원으로 급제했습니다. 임금이 직접 이름을 불렀고, 어사화를 꽂은 채 삼일유가를 돌았습니다.`,fx:{o:34,w:10,b:6},set:{munkwa:1,jangwon:1},off:2},
+      {p:s=>clamp(.06+(s.stats.learn-45)/200+(s.home==='gate'?.06:0),.03,.4),r:s=>`${N(s)}는 문과에 급제했습니다. 어사화를 꽂고 삼일유가를 돌았습니다.`,fx:{o:20,w:6,b:4},set:{munkwa:1},off:1},
+      {p:s=>1-clamp(.06+(s.stats.learn-45)/200+(s.home==='gate'?.06:0),.03,.4),r:'또 낙방했습니다. 나이만 더해 갑니다.',fx:{l:3,h:-2,w:-4}}]},
+     {l:'벼슬을 단념하고 서원에서 학문에 힘쓴다',o:[{p:1,r:'향촌 서원에 자리를 잡고 학문에 몰두했습니다.',fx:{l:6,o:6,b:5},set:{giveup:1,teacher:1}}]}]});
+
+E.push({id:'jap_exam',min:16,max:36,w:10,once:true,when:s=>isMale(s)&&s.status==='jungin',t:'잡과',
+  x:s=>`${N(s)}는 양반의 과거에 나설 수 없지만, 중인에게는 역과·의과·율과 같은 잡과가 있습니다.`,
+  c:[{l:'잡과에 응시한다',o:[
+      {p:s=>clamp(.25+(s.stats.learn-30)/200,.1,.6),r:s=>`${N(s)}는 잡과에 합격해 기술직 관원이 되었습니다.`,fx:{o:10,w:10,l:5},off:1,set:{jap:1}},
+      {p:s=>1-clamp(.25+(s.stats.learn-30)/200,.1,.6),r:'낙방했습니다. 가업을 이어 가기로 합니다.',fx:{l:3,w:3}}]},
+     {l:'가업을 바로 잇는다',o:[{p:1,r:'아버지 곁에서 일을 배우며 손에 익혔습니다.',fx:{w:8,l:3}}]}]});
+
+E.push({id:'military',min:16,max:40,w:8,once:true,when:s=>isMale(s)&&s.status==='sangmin',t:'군역',
+  x:s=>`고을 서리가 찾아와 ${N(s)}의 이름이 군적에 올랐다고 알렸습니다. 직접 군에 나가거나 군포 두 필을 바쳐야 합니다.`,
+  c:[{l:'군포를 바친다',d:'재물이 줄어듭니다',o:[{p:1,r:'베를 내고 군역을 면했습니다. 곳간이 헐렁해졌습니다.',fx:{w:-12}}]},
+     {l:'직접 입번해 변경을 지킨다',o:[{p:1,r:'몇 해 동안 북쪽 변경에서 군역을 살았습니다. 몸은 상했지만 동료가 생겼습니다.',fx:{h:-6,o:5,b:5}}]},
+     {l:'산으로 도망친다',d:'붙잡히면 곤장을 맞습니다',o:[
+      {p:.5,r:'산속에서 화전을 일구며 숨어 살았습니다.',fx:{w:-4,h:-3,o:-8},set:{fugitive:1}},
+      {p:.5,r:'관아에 붙잡혀 곤장을 맞았습니다.',fx:{h:-10,o:-6}}]}]});
+
+E.push({id:'abuse',min:14,max:55,w:6,repeat:3,when:sl,t:'주인의 노여움',
+  x:s=>`곡식이 모자랐다는 이유로 주인집에서 ${josa(N(s),'을','를')} 불러 세웠습니다. 목소리가 날카롭습니다.`,
+  c:[{l:'고개를 숙이고 견딘다',o:[{p:1,r:'매 몇 대를 맞고 풀려났습니다.',fx:{h:-5,o:-1,b:1}}]},
+     {l:'밤을 틈타 도망친다',d:'추노꾼이 뒤를 쫓습니다',o:[
+      {p:.35,r:'낯선 고을에서 이름을 바꾸고 양인 행세를 하며 살게 되었습니다.',st:'sangmin',fx:{o:-6,b:-10,h:-3,w:2},set:{hidden:1}},
+      {p:.65,r:'추노꾼에게 붙잡혀 돌아와 모진 매를 맞았습니다.',fx:{h:-15,o:-4}}]},
+     {l:'관아에 소장을 낸다',d:'노비가 주인을 고발하는 일은 법으로 막혀 있습니다',o:[
+      {p:.1,r:'뜻밖에 관아가 사정을 받아들여 주인이 꾸지람을 들었습니다.',fx:{o:6,b:4}},
+      {p:.9,r:'주인을 고소한 죄로 곤장을 맞았습니다.',fx:{h:-16,o:-8}}]}]});
+
+E.push({id:'manumit',min:18,max:62,w:9,once:true,when:s=>s.status==='cheonmin'&&s.stats.wealth>=42&&['solgeo','oegeo','gong'].includes(s.home),t:'속량',
+  x:s=>`몇 해 동안 한 푼씩 모은 돈이 어느새 몸값 가까이 찼습니다. 주인에게 속량을 청할 수 있습니다.`,
+  c:[{l:'모은 재물을 바치고 속량을 청한다',d:'재물이 많이 듭니다',o:[
+      {p:.88,r:s=>`속량문서를 받았습니다. 오늘부터 ${N(s)}는 양인입니다.`,st:'sangmin',fx:{w:-28,o:14,b:6},set:{manumitted:1}},
+      {p:.12,r:'돈은 받아 놓고 주인이 문서를 자꾸 미룹니다.',fx:{w:-20,o:-3}}]},
+     {l:'아직은 더 모으기로 한다',o:[{p:1,r:'조금 더 모으기로 했습니다.',fx:{w:6}}]}]});
+
+E.push({id:'gongmyeong',min:30,max:62,w:9,once:true,when:s=>(s.status==='sangmin'||s.status==='jungin')&&s.stats.wealth>=58&&s.year>=1600,t:'공명첩',
+  x:s=>`흉년에 나라가 곡식을 거두려고 이름 칸이 빈 공명첩을 팔고 있다는 소문입니다. 재물을 바치면 관직 이름을 얻을 수 있습니다.`,
+  c:[{l:'곡식을 바치고 공명첩을 산다',d:'재물이 크게 줄어듭니다',o:[
+      {p:.82,r:s=>`${N(s)}는 문서를 들고 양반 행세를 시작했습니다. 이웃은 수군거렸지만 관아 문서는 진짜입니다.`,st:'yangban',fx:{w:-34,o:10,b:-3},set:{boughtStatus:1}},
+      {p:.18,r:'문서는 샀으나 향촌의 양반들이 끝내 받아들이지 않았습니다.',fx:{w:-34,o:-3}}]},
+     {l:'그 돈을 자식 교육에 쓴다',o:[{p:1,r:'글 잘 가르치는 스승을 모셔 아이들에게 글을 가르쳤습니다.',fx:{w:-8,o:5,b:4,l:3}}]}]});
+
+E.push({id:'genealogy',min:38,max:64,w:7,once:true,when:s=>(s.status==='sangmin'||s.status==='jungin')&&s.stats.wealth>=50&&s.year>=1740,t:'족보',
+  x:s=>`${N(s)}의 형편이 나아지자 중간에서 소개하는 사람이 찾아옵니다. 몰락한 양반 문중의 족보에 이름을 올려 주겠다고 합니다.`,
+  c:[{l:'값을 치르고 족보에 오른다',o:[
+      {p:.7,r:'몇 해 뒤 문중이 한 식구로 받아들였습니다. 자식들은 양반 자제로 자랍니다.',st:'yangban',fx:{w:-24,o:10},set:{boughtStatus:1}},
+      {p:.3,r:'가짜 족보라는 말이 퍼져 곤욕을 치렀습니다.',fx:{w:-24,o:-14,h:-4}}]},
+     {l:'본래의 성씨로 정직하게 산다',o:[{p:1,r:'떳떳하게 사는 쪽을 택했습니다.',fx:{o:3,b:3}}]}]});
+
+E.push({id:'trade',min:18,max:42,w:7,once:true,when:s=>(s.status==='sangmin'||s.status==='jungin')&&s.stats.wealth>=18,t:'장사',
+  x:s=>`오일장이 서는 날 ${N(s)}는 팔 만한 물건이 있다는 것을 알았습니다.`,
+  c:[{l:'장시를 돌며 장사를 시작한다',o:[
+      {p:.6,r:'장터를 돌면서 단골이 생겼습니다.',fx:{w:15,b:5,h:-3}},
+      {p:.4,r:'길에서 짐을 잃고 빚을 졌습니다.',fx:{w:-10,h:-5}}]},
+     {l:'땅을 지키며 농사에 힘쓴다',o:[{p:1,r:'땅을 부지런히 갈았습니다.',fx:{w:5,h:2}}]}]});
+/* ---------- 사건 데이터 2: 관직, 여성, 일상, 노년, 시대의 사건 ---------- */
+E.push({id:'career',min:26,max:62,w:12,repeat:9,when:s=>s.office>=1&&s.office<7&&!s.flags.exile,t:'벼슬살이',
+  x:s=>`${N(s)}는 ${OFFICES[s.office]}에 있습니다. 승진을 두고 조정의 분위기가 어수선합니다.`,
+  c:[{l:'청렴하게 소임을 다한다',o:[
+      {p:s=>.3+s.stats.honor/300,r:'올곧다는 평판이 올라 한 계단 승진했습니다.',fx:{o:6,w:-2},off:1},
+      {p:.5,r:'공은 쌓였지만 승진은 늦어졌습니다.',fx:{o:3,l:2}}]},
+     {l:'당파 어른에게 줄을 댄다',d:'붕당이 갈린 시절입니다',o:[
+      {p:.45,r:'당파 어른의 천거로 자리가 올랐습니다.',fx:{w:8,o:-2,b:4},off:1},
+      {p:.35,r:'상대 당이 힘을 얻어 파직되었습니다.',fx:{o:-10,w:-6},off:-1},
+      {p:.2,r:'탄핵을 받아 유배 길에 올랐습니다.',fx:{h:-14,o:-8,w:-8},off:-1,set:{exile:1}}]},
+     {l:'지방 수령으로 나간다',o:[
+      {p:.5,r:'백성을 돌보며 이름을 얻었습니다.',fx:{w:10,o:6,b:4}},
+      {p:.5,r:'아전과 토호 사이에서 마음고생이 심했습니다.',fx:{h:-6,w:3}}]}]});
+
+E.push({id:'bribe',min:28,max:62,w:5,repeat:2,when:s=>s.office>=2,t:'은밀한 청탁',
+  x:s=>`누군가 밤늦게 큰 보따리를 들고 ${N(s)}의 집을 찾았습니다. 청탁이 오갑니다.`,
+  c:[{l:'돌려보낸다',o:[{p:1,r:'단호하게 거절했습니다. 소문이 나서 이름이 올랐습니다.',fx:{o:6,w:-1,b:-2}}]},
+     {l:'받는다',o:[{p:.7,r:'아무 일 없이 지나갔고 곳간이 찼습니다.',fx:{w:16,o:-4}},
+                  {p:.3,r:'암행어사에게 적발되어 직에서 쫓겨났습니다.',fx:{w:-14,o:-16},off:-1}]}]});
+
+E.push({id:'release',min:30,max:80,w:14,when:s=>s.flags.exile,t:'유배 해배',
+  x:s=>`${N(s)}가 귀양을 간 지 몇 해가 지났습니다. 조정에서 해배의 소식이 왔습니다.`,
+  o:[{p:1,r:'유배에서 풀려 돌아왔습니다. 몸은 상했지만 글은 늘었습니다.',fx:{h:-4,l:5,o:4},set:{exile:0,exileBack:1}}]});
+
+E.push({id:'envoy',min:25,max:56,w:9,once:true,when:s=>s.status==='jungin'&&s.home==='yeok',t:'사행길',
+  x:s=>`연경으로 가는 사신 행렬에 역관 자리가 났습니다. 먼 길이지만 무역으로 이익을 남길 수 있습니다.`,
+  c:[{l:'사행을 따라 연경에 간다',o:[
+      {p:.7,r:'사행 무역으로 큰돈을 벌었습니다. 연경에서 본 서책을 들고 돌아왔습니다.',fx:{w:22,l:6,b:4},set:{envoy:1}},
+      {p:.3,r:'길이 고되어 병이 났지만 얻은 것도 있었습니다.',fx:{h:-10,w:6,l:4}}]},
+     {l:'집에 남는다',o:[{p:1,r:'고을에서 통역 일을 하며 지냈습니다.',fx:{w:4}}]}]});
+
+E.push({id:'doctor',min:28,max:58,w:9,once:true,when:s=>s.status==='jungin'&&s.home==='eui',t:'의원의 이름',
+  x:s=>`${N(s)}의 침 솜씨와 약방문이 고을에 소문났습니다.`,
+  o:[{p:.3,r:'궁궐의 의관에게까지 이름이 올라 부름을 받았습니다.',fx:{o:16,w:12},set:{royalDoc:1}},
+     {p:.7,r:'양반집 문턱까지 불려 다니며 이름을 얻었습니다.',fx:{o:6,w:7,b:4}}]});
+
+E.push({id:'clerk',min:22,max:56,w:7,repeat:2,when:s=>s.status==='jungin'&&s.home==='seo',t:'장부의 유혹',
+  x:s=>`곡식 창고의 장부를 손대면 이익을 챙길 수 있는 자리에 ${N(s)}가 앉았습니다.`,
+  c:[{l:'장부를 손대 이익을 챙긴다',o:[
+      {p:.6,r:'들키지 않고 재물을 모았습니다.',fx:{w:14,o:-5}},
+      {p:.4,r:'장부가 어긋난 것이 드러나 곤장을 맞았습니다.',fx:{h:-8,w:-10,o:-12}}]},
+     {l:'원칙대로 일한다',o:[{p:1,r:'손해를 보면서도 맡은 일을 바르게 했습니다.',fx:{o:4,w:-1,b:-2}}]}]});
+
+E.push({id:'inlaw',min:18,max:38,w:8,repeat:2,when:s=>isFem(s)&&s.married,t:'시집살이',
+  x:s=>`새벽부터 밤까지 시어머니의 눈길이 ${N(s)}를 따라다닙니다.`,
+  c:[{l:'말없이 견딘다',o:[{p:1,r:'참고 견디니 집안에서 며느리 노릇을 잘한다는 말이 돌았습니다.',fx:{h:-3,o:3,b:2}}]},
+     {l:'친정에 사정을 알린다',o:[
+      {p:.4,r:'친정 어른이 나서 시댁과 이야기를 해 주었습니다.',fx:{b:6,o:-2}},
+      {p:.6,r:'출가외인이라는 말만 돌아왔습니다.',fx:{b:-4,o:-2}}]}]});
+
+E.push({id:'loom',min:16,max:52,w:7,repeat:4,when:s=>isFem(s)&&!hi(s),t:'길쌈 장시',
+  x:s=>`밤마다 짠 베가 쌓였습니다. 장에 내다 팔면 쌀 한 가마는 됩니다.`,
+  o:[{p:.6,r:'장에 나가 베를 팔았습니다. 손에 쥔 돈이 든든합니다.',fx:{w:9,h:-2}},
+     {p:.4,r:'값이 떨어져 헐값에 넘겼습니다.',fx:{w:3,h:-2}}]});
+
+E.push({id:'poem',min:20,max:55,w:6,once:true,when:s=>isFem(s)&&s.status==='yangban'&&s.stats.learn>=32,t:'밤의 글',
+  x:s=>`집안일이 끝난 밤, ${N(s)}는 붓을 듭니다. 쓰고 싶은 글이 있습니다.`,
+  c:[{l:'시를 짓고 글을 모은다',o:[
+      {p:.5,r:'지은 글이 가까운 이들 사이에 돌려 읽혔습니다.',fx:{l:8,o:6,b:4},set:{poet:1}},
+      {p:.5,r:'바깥사람에게 글을 보였다는 말이 나와 곤란했습니다.',fx:{l:5,b:-3,o:-3}}]},
+     {l:'붓을 접는다',o:[{p:1,r:'글은 마음에만 두기로 했습니다.',fx:{b:1}}]}]});
+
+E.push({id:'widow',min:30,max:65,w:3,once:true,when:s=>isFem(s)&&s.married,t:'남편의 부음',
+  x:s=>`${N(s)}의 남편이 병으로 세상을 떠났습니다. 장례를 치르고 나니 앞날이 막막합니다.`,
+  c:[{l:'자식들과 가계를 꾸려 간다',o:[
+      {p:.3,r:'재가하지 않고 살림을 지켜 효부로 마을에 소문이 났습니다.',fx:{o:14,w:-6,h:-4},set:{hyobu:1}},
+      {p:.7,r:'살림은 줄었지만 자식들과 함께 버텼습니다.',fx:{w:-8,h:-4,b:3}}]},
+     {l:'친정에 의탁한다',o:[{p:1,r:'친정에 몸을 의탁했습니다. 조용하지만 외로운 날이 이어집니다.',fx:{b:4,o:-4}}]}]});
+
+E.push({id:'harvest',min:12,max:70,w:4,repeat:20,when:s=>s.status!=='jungin'||s.home==='seo',t:'농사',
+  x:s=>`올해 농사가 어떻게 될지 모두가 하늘만 바라봅니다.`,
+  o:[{p:.3,r:'풍년이 들었습니다. 가을 곳간이 든든합니다.',fx:{w:9,b:2}},
+     {p:.45,r:'평년작이라 큰 걱정 없이 지났습니다.',fx:{w:1}},
+     {p:.25,r:'가뭄과 장마로 흉년이 들었습니다.',fx:{w:-9,h:-3}}]});
+
+E.push({id:'gwan',min:18,max:62,w:5,repeat:4,when:s=>s.status==='sangmin'&&s.stats.wealth<32,t:'환곡',
+  x:s=>`봄에 환곡을 얻어 먹고 가을에 이자를 붙여 갚는 일이 해마다 반복됩니다.`,
+  c:[{l:'환곡을 얻어 봄을 난다',o:[
+      {p:.5,r:'무사히 갚고 한 해를 넘겼습니다.',fx:{h:2,w:3}},
+      {p:.5,r:'이자가 불어나 빚이 늘었습니다.',fx:{w:-9,b:-2}}]},
+     {l:'굶으며 버틴다',o:[{p:1,r:'아껴 먹고 줄여 먹었습니다. 몸이 상했습니다.',fx:{h:-8}}]}]});
+
+E.push({id:'lawsuit',min:25,max:62,w:5,repeat:2,when:s=>s.status!=='cheonmin',t:'송사',
+  x:s=>`이웃과 땅 경계와 산소 자리를 두고 시비가 붙었습니다. 관아에 소장을 올릴 수도 있습니다.`,
+  c:[{l:'관아에 소장을 올린다',o:[
+      {p:s=>clamp(.3+s.stats.honor/200+ST[s.status].r*.05,.2,.8),r:'송사에서 이겼습니다.',fx:{w:10,o:4}},
+      {p:s=>1-clamp(.3+s.stats.honor/200+ST[s.status].r*.05,.2,.8),r:'송사에서 졌습니다. 송사 비용만 날렸습니다.',fx:{w:-9,o:-3}}]},
+     {l:'이웃과 화해한다',o:[{p:1,r:'술상을 차려 놓고 이야기를 나눴습니다.',fx:{b:5,w:-2}}]}]});
+
+E.push({id:'fever',min:10,max:70,w:5,repeat:4,t:'열병',
+  x:s=>`${N(s)}가 열병으로 앓아누웠습니다. 학질인지 역병인지 아무도 알지 못합니다.`,
+  o:[{p:s=>.04+(100-s.stats.health)/900,die:'열병'},
+     {p:.55,r:'며칠을 앓고 일어났습니다.',fx:{h:-10}},
+     {p:.4,r:'약을 쓰자 곧 나았습니다.',fx:{h:-3,w:-4}}]});
+
+E.push({id:'tiger',min:12,max:60,w:.9,repeat:2,when:s=>!['한성','경기'].includes(s.region),t:'호환',
+  x:s=>`산길에서 호랑이 발자국을 보았다는 이야기가 마을에 퍼졌습니다. 나무를 하러 산에 가야 합니다.`,
+  o:[{p:.92,r:'긴장 속에서 무사히 다녀왔습니다.',fx:{h:-1,b:2},set:{tiger:1}},
+     {p:.08,die:'호환(호랑이에게 변을 당함)'}]});
+
+E.push({id:'festival',min:8,max:60,w:4,repeat:5,t:'단오',
+  x:s=>`단오가 되어 마을 어귀에 그네가 걸렸습니다.`,
+  o:[{p:1,r:'창포물에 머리를 감고 씨름과 그네를 구경했습니다.',fx:{b:5,h:2}}]});
+
+E.push({id:'hwangap',min:60,max:60,w:999,t:'회갑',
+  x:s=>`${N(s)}의 나이 예순입니다. 조선에서 회갑까지 사는 사람은 많지 않습니다.`,
+  o:[{p:s=>s.stats.wealth>=40&&s.stats.bond>=40?1:0,r:'자손과 이웃이 모여 회갑 잔치를 벌였습니다.',fx:{b:8,o:4}},
+     {p:s=>s.stats.wealth>=40&&s.stats.bond>=40?0:1,r:'소박한 상을 받았습니다. 그래도 살아서 맞은 생일입니다.',fx:{b:3}}]});
+
+E.push({id:'teach_old',min:50,max:74,w:7,once:true,when:s=>isMale(s)&&s.stats.learn>=40,t:'후학',
+  x:s=>`${N(s)}를 찾아오는 젊은 선비들이 늘었습니다.`,
+  c:[{l:'서당을 열어 가르친다',o:[{p:1,r:'제자들이 모여 글공부를 했습니다.',fx:{l:4,o:8,b:6}}]},
+     {l:'문집을 엮는다',o:[{p:1,r:'평생 쓴 글을 모아 문집을 엮었습니다.',fx:{l:3,o:6,w:-4}}]}]});
+
+E.push({id:'kids_old',min:55,max:85,w:6,repeat:3,when:s=>s.children>0,t:'자식들',
+  x:s=>`장성한 자식들이 ${N(s)}의 집에 모였습니다.`,
+  o:[{p:s=>s.stats.bond>=40?1:.2,r:'자식들이 정성껏 모시니 마음이 놓였습니다.',fx:{h:3,b:5}},
+     {p:s=>s.stats.bond>=40?0:.8,r:'자식들은 바쁘다며 일찍 돌아갔습니다. 집이 조용해졌습니다.',fx:{b:-5,h:-2}}]});
+
+E.push({id:'old_regret',min:62,max:86,w:3,repeat:3,t:'지난날',
+  x:s=>`저녁 무렵 ${N(s)}는 마루에 앉아 지난날을 헤아려 봅니다.`,
+  o:[{p:1,r:'지난 일을 떠올리며 한참을 앉아 있었습니다.',fx:{b:2}}]});
+
+/* ---------- 시대의 사건 ---------- */
+const H=[
+ {id:'imjin',from:1592,to:1598,min:7,t:'임진왜란',x:s=>`왜군이 부산에 상륙했다는 소식이 고을까지 닿았습니다.`,
+  c:[{l:'가족을 이끌고 산골로 피난한다',o:[
+      {p:.7,r:'산골에 숨어 목숨을 건졌지만 집과 살림을 잃었습니다.',fx:{w:-14,h:-6}},
+      {p:.3,r:'피난길에서 병과 굶주림에 시달렸습니다.',fx:{h:-18,w:-18,b:-6}}]},
+     {l:'의병이나 속오군에 들어간다',when:s=>isMale(s)&&s.age>=15,d:'전공을 세우면 신분이 달라지기도 했습니다',o:[
+      {p:.6,r:s=>`${N(s)}는 전장에서 공을 세웠습니다. ${s.status==='cheonmin'?'군공으로 노비 신분에서 벗어났습니다.':'이름이 고을에 알려졌습니다.'}`,fx:{o:20,h:-10,b:6},set:{gunkong:1},st:s=>s.status==='cheonmin'?'sangmin':null},
+      {p:.4,r:'전투에서 크게 다쳤습니다.',fx:{h:-24,o:8}}]},
+     {l:'집에서 숨죽이고 지낸다',o:[{p:1,r:'소문과 풍문 속에 한 해를 보냈습니다.',fx:{w:-8,h:-4}}]}]},
+ {id:'byeongja',from:1636,to:1637,min:7,t:'병자호란',x:s=>`청나라 군대가 압록강을 넘었다는 급보가 전해졌습니다.`,
+  c:[{l:'식구를 데리고 산중으로 피한다',o:[
+      {p:.7,r:'산속에서 겨울을 버텼지만 곡식이 바닥났습니다.',fx:{w:-10,h:-6}},
+      {p:.3,r:'길에서 군사를 만나 식구가 흩어졌습니다.',fx:{b:-20,h:-14,o:-6}}]},
+     {l:'근왕군에 들어간다',when:s=>isMale(s)&&s.age>=16,o:[{p:1,r:'근왕군에 들어갔지만 싸움은 일찍 끝났습니다. 허탈한 마음만 남았습니다.',fx:{o:6,h:-8}}]}]},
+ {id:'gyeongsin',from:1670,to:1671,min:3,t:'경신대기근',x:s=>`흉년이 이어져 곡식값이 폭등했습니다. 길가에 굶어 죽은 사람이 보입니다.`,
+  o:[{p:s=>s.status==='yangban'?.7:.3,r:'미리 쌓아 둔 곡식으로 겨우 버텼습니다.',fx:{w:-8,h:-4}},
+     {p:s=>s.status==='yangban'?.3:.7,r:'풀뿌리와 나무껍질로 연명하며 몸이 많이 상했습니다.',fx:{h:-16,w:-14,b:-4}}]},
+ {id:'eulbyeong',from:1695,to:1696,min:3,t:'을병대기근',x:s=>`두 해째 흉년이 이어집니다. 마을마다 떠나는 이들이 많습니다.`,
+  o:[{p:s=>s.status==='yangban'?.6:.3,r:'가진 것을 팔아 겨우 한 해를 넘겼습니다.',fx:{w:-10,h:-5}},
+     {p:s=>s.status==='yangban'?.4:.7,r:'굶주림이 깊어 병을 얻었습니다.',fx:{h:-18,w:-12}}]},
+ {id:'hong',from:1811,to:1812,min:7,when:s=>s.region==='평안',t:'홍경래의 난',x:s=>`평안도에서 대규모 반란이 일어나 온 고을이 소란스럽습니다.`,
+  o:[{p:.6,r:'난리가 지나가는 동안 문을 걸어 잠그고 버텼습니다.',fx:{w:-10,h:-5}},
+     {p:.4,r:'난리에 휘말려 가까운 사람이 다치거나 끌려갔습니다.',fx:{b:-12,h:-10}}]},
+ {id:'colera',from:1821,to:1822,min:3,t:'괴질',x:s=>`온몸에 힘이 빠지고 토하고 설사하다 쓰러지는 괴질이 온 나라에 번졌습니다.`,
+  o:[{p:s=>.1+(100-s.stats.health)/500,die:'괴질(콜레라)'},
+     {p:.9,r:'괴질이 지나가길 기다리며 집 안에 숨죽이고 지냈습니다.',fx:{h:-8,b:-3}}]},
+ {id:'imsul',from:1862,to:1862,min:12,when:s=>['전라','경상','충청'].includes(s.region),t:'임술년의 민란',x:s=>`수령의 가렴주구와 환곡의 폐단에 삼남 곳곳에서 농민들이 들고일어났습니다.`,
+  c:[{l:'봉기에 가담한다',when:s=>s.status!=='yangban',o:[
+      {p:.5,r:'농민들과 함께 관아 앞에 모여 억울함을 호소했습니다. 조정이 폐단을 고치겠다고 약속했습니다.',fx:{o:6,b:8,h:-4}},
+      {p:.5,r:'관군에 쫓겨 도망 다니며 고초를 겪었습니다.',fx:{h:-12,o:-6,w:-6}}]},
+     {l:'지켜보며 몸을 낮춘다',o:[{p:1,r:'소란이 가라앉기를 기다렸습니다.',fx:{b:-2}}]}]}
+];
+const CRISIS=[[1592,1598,1.7],[1636,1637,1.5],[1670,1671,2.4],[1695,1696,2.0],[1821,1822,1.8]];
+/* ---------- 사건 데이터 3: 일상과 인생의 일 (한 해에 여러 개가 겹칠 수 있음) ----------
+   fx 키 c 는 엽전(냥)을 직접 늘리고 줄입니다. */
+const male=isMale, fem=isFem, poor=s=>s.stats.wealth<30, rich=s=>s.stats.wealth>=60;
+const notSlave=s=>s.status!=='cheonmin';
+
+/* 어린 시절 */
+E.push({id:'story',min:3,max:12,w:6,repeat:3,t:'옛이야기',
+  x:s=>`겨울밤, 화롯가에서 할머니가 호랑이와 곶감 이야기를 들려줍니다.`,
+  o:[{p:1,r:'이야기가 끝날 때까지 눈을 말똥말똥 뜨고 들었습니다.',fx:{b:5,l:2}}]});
+E.push({id:'kite',min:4,max:13,w:5,repeat:3,t:'연날리기',
+  x:s=>`정월 찬바람 속에서 아이들이 연을 날립니다. ${N(s)}의 연이 가장 높이 올랐습니다.`,
+  o:[{p:.7,r:'연줄을 길게 풀어 하늘 높이 띄웠습니다.',fx:{b:4,h:2}},{p:.3,r:'연줄이 끊겨 연이 멀리 날아가 버렸습니다. 한참을 쫓아갔습니다.',fx:{b:2,h:1}}]});
+E.push({id:'river',min:4,max:11,w:3,repeat:2,t:'개울가',
+  x:s=>`여름이 되자 ${N(s)}는 동무들과 개울로 나갔습니다. 물이 평소보다 깊습니다.`,
+  c:[{l:'깊은 곳까지 들어가 본다',o:[{p:.94,r:'물장구를 치며 한낮을 보냈습니다.',fx:{b:4,h:2}},{p:.06,die:'물에 빠져 목숨을 잃음'}]},
+     {l:'얕은 곳에서 가재를 잡는다',o:[{p:1,r:'가재 몇 마리를 잡아 저녁 반찬으로 삼았습니다.',fx:{b:3,h:1}}]}]});
+E.push({id:'chore',min:7,max:14,w:6,repeat:4,when:s=>s.status==='sangmin'||s.status==='cheonmin',t:'어린 일꾼',
+  x:s=>`${N(s)}는 새벽에 일어나 소를 먹이고 땔감을 줍습니다. 손이 터서 갈라집니다.`,
+  o:[{p:1,r:'어린 몸으로 한 사람 몫의 일을 해냈습니다.',fx:{w:3,h:-2,b:1}}]});
+E.push({id:'ghost',min:5,max:13,w:4,once:true,t:'도깨비 소문',
+  x:s=>`마을 어귀 느티나무 아래에 도깨비가 나온다는 소문이 아이들 사이에 퍼졌습니다.`,
+  c:[{l:'밤에 몰래 가 본다',o:[{p:.5,r:'달빛 아래 흔들리는 그림자만 보고 달려 돌아왔습니다. 동무들이 용감하다고 치켜세웠습니다.',fx:{b:6,o:1}},{p:.5,r:'놀라 넘어져 무릎이 깨졌습니다.',fx:{h:-3,b:2}}]},
+     {l:'웃어넘기고 가지 않는다',o:[{p:1,r:'어른들 말씀대로 해 지면 집에 일찍 들어갔습니다.',fx:{b:1}}]}]});
+E.push({id:'bookparty',min:7,max:10,w:9,once:true,when:s=>male(s)&&s.status==='yangban',t:'책씻이',
+  x:s=>`${N(s)}가 천자문을 떼었습니다. 서당에서는 책거리, 곧 책씻이 잔치를 여는 풍습이 있습니다.`,
+  c:[{l:'떡과 술상을 푸짐하게 차린다',d:'엽전 12냥',o:[{p:1,r:'훈장님과 동무들이 모여 칭찬했고 웃음이 가득했습니다.',fx:{o:3,b:5,c:-12}}]},
+     {l:'조촐히 떡 한 접시만 올린다',o:[{p:1,r:'소박하지만 마음을 담아 인사를 드렸습니다.',fx:{o:1,b:2}}]}]});
+E.push({id:'hyanggyo',min:14,max:22,w:7,once:true,when:s=>male(s)&&s.status==='yangban',t:'향교',
+  x:s=>`${N(s)}는 열댓 살이 되어 향교에 이름을 올리고 선배 유생들과 함께 글을 읽게 되었습니다.`,
+  c:[{l:'열심히 경전을 읽고 토론에 나선다',o:[{p:.7,r:'선배들에게 인정을 받아 이름이 알려졌습니다.',fx:{l:8,o:4,b:3}},{p:.3,r:'토론에서 말문이 막혀 부끄러움을 당했지만 오기가 생겼습니다.',fx:{l:6,o:-1}}]},
+     {l:'공부보다 벗들과 어울린다',o:[{p:1,r:'벗은 많이 사귀었으나 책장은 덜 넘겼습니다.',fx:{b:8,l:2}}]}]});
+E.push({id:'siblings',min:6,max:14,w:5,repeat:2,t:'동생',
+  x:s=>`어머니가 갓난 동생을 안겨 주며 ${josa(N(s),'에게','에게')} 잘 보라고 하십니다.`,
+  o:[{p:1,r:'등에 업고 마을을 돌아다녔습니다. 동생이 방긋 웃을 때마다 어깨가 으쓱했습니다.',fx:{b:5,h:-1}}]});
+
+/* 명절과 철 따라 */
+E.push({id:'seol',min:6,max:80,w:5,repeat:30,t:'설날',
+  x:s=>`설날 아침, 온 집안이 모여 차례를 지내고 어른들께 세배를 올립니다.`,
+  o:[{p:s=>s.stats.wealth<20?.5:.85,r:'떡국을 나눠 먹으며 한 살을 더했습니다.',fx:{b:4}},{p:s=>s.stats.wealth<20?.5:.15,r:'변변한 상은 못 차렸지만 식구가 모여 앉았습니다.',fx:{b:3,w:-1}}]});
+E.push({id:'boreum',min:6,max:80,w:4,repeat:20,t:'정월 대보름',
+  x:s=>`대보름 밤, 마을 앞 논둑에서 달집을 태우고 쥐불놀이를 합니다.`,
+  o:[{p:1,r:'달을 보며 소원을 빌었습니다. 부럼을 깨물며 올 한 해 탈 없기를 바랐습니다.',fx:{b:3,h:1}}]});
+E.push({id:'chuseok',min:6,max:80,w:5,repeat:30,t:'추석',
+  x:s=>`햇곡식으로 송편을 빚어 차례를 지내고 성묘를 갑니다.`,
+  o:[{p:s=>s.stats.wealth>=25?.8:.3,r:'풍성한 한가위 상이 차려졌습니다.',fx:{b:4,w:-2}},{p:s=>s.stats.wealth>=25?.2:.7,r:'상은 단출했지만 식구들이 한자리에 모였습니다.',fx:{b:3}}]});
+E.push({id:'jesa',min:12,max:80,w:5,repeat:20,when:notSlave,t:'제사',
+  x:s=>`${N(s)} 집안의 제삿날이 돌아왔습니다. 제수를 마련할 때가 됐습니다.`,
+  c:[{l:'격식을 갖춰 정성껏 제수를 차린다',d:'엽전 10냥',o:[{p:1,r:'친척들이 모여 제사를 지냈습니다. 집안의 체면이 섰습니다.',fx:{o:3,b:4,c:-10}}]},
+     {l:'형편에 맞게 간소히 지낸다',o:[{p:1,r:'정성을 다하되 소박하게 지냈습니다.',fx:{b:2}}]}]});
+E.push({id:'drought',min:8,max:80,w:3,repeat:5,t:'가뭄과 기우제',
+  x:s=>`비가 오지 않은 지 오래입니다. 논바닥이 쩍쩍 갈라지고 마을에서는 기우제를 지내자는 말이 나옵니다.`,
+  c:[{l:'기우제에 참여해 물을 나른다',o:[{p:.5,r:'제를 올린 사흘 뒤 비가 내렸습니다. 마을이 환호했습니다.',fx:{b:6,w:2}},{p:.5,r:'비는 끝내 오지 않았습니다. 힘만 빠졌습니다.',fx:{b:2,h:-3,w:-4}}]},
+     {l:'집에 남아 물을 아낀다',o:[{p:1,r:'가진 물로 하루하루를 버텼습니다.',fx:{w:-4,h:-1}}]}]});
+E.push({id:'flood',min:8,max:80,w:3,repeat:5,t:'장마',
+  x:s=>`장마가 보름째 이어지며 개울이 넘치고 둑이 위태롭습니다.`,
+  c:[{l:'이웃과 함께 둑을 막는다',o:[{p:.75,r:'모두 밤새 가마니를 쌓아 논을 지켰습니다.',fx:{b:6,h:-3,o:2}},{p:.25,r:'물이 둑을 넘어 곡식이 잠겼습니다. 힘만 쓰고 손해를 봤습니다.',fx:{w:-9,h:-5,b:3}}]},
+     {l:'집과 살림부터 높은 곳으로 옮긴다',o:[{p:1,r:'살림은 건졌지만 논은 어쩔 수 없었습니다.',fx:{w:-5,b:-2}}]}]});
+E.push({id:'fire',min:8,max:75,w:3,repeat:3,t:'이웃집 불',
+  x:s=>`한밤중에 이웃집 초가지붕에서 불길이 치솟았습니다.`,
+  c:[{l:'물동이를 들고 달려가 불을 끈다',o:[{p:.8,r:'마을 사람들과 함께 불길을 잡았습니다. 이웃에게 큰 은혜를 입혔습니다.',fx:{b:8,o:3,h:-2}},{p:.2,r:'불길 속에서 화상을 입었습니다.',fx:{h:-12,b:6,o:4}}]},
+     {l:'내 집 지붕에 물을 끼얹으며 지킨다',o:[{p:.7,r:'불이 번지지 않아 내 집은 무사했습니다.',fx:{w:0}},{p:.3,r:'불똥이 옮겨 붙어 지붕 한쪽이 탔습니다.',fx:{w:-8}}]}]});
+E.push({id:'comet',min:5,max:80,w:1.5,once:true,t:'혜성',
+  x:s=>`밤하늘에 긴 꼬리를 단 별이 나타났습니다. 사람들은 나라에 변고가 있을 징조라며 수군거립니다.`,
+  o:[{p:1,r:'마을 사람들이 마당에 나와 하늘을 올려다보았습니다. 불안과 호기심이 뒤섞였습니다.',fx:{b:2}}]});
+
+/* 사람 사이 */
+E.push({id:'peddler',min:10,max:75,w:6,repeat:6,t:'보부상',
+  x:s=>`보부상이 마을에 들어와 소금, 바늘, 옷감을 펼쳐 놓았습니다.`,
+  c:[{l:'필요한 물건을 몇 가지 산다',d:'엽전 6냥',o:[{p:1,r:'소금과 바늘을 사고 바깥 소식도 들었습니다.',fx:{w:1,b:2,c:-6}}]},
+     {l:'구경만 하고 보낸다',o:[{p:1,r:'이야기만 듣고 물건은 사지 않았습니다.',fx:{b:1}}]}]});
+E.push({id:'wedding_guest',min:10,max:70,w:5,repeat:6,t:'이웃 혼례',
+  x:s=>`이웃 마을에서 혼례가 있어 잔치 초대가 왔습니다.`,
+  o:[{p:.7,r:'국수와 부침개를 얻어먹고 신랑 신부를 구경했습니다.',fx:{b:5,h:1}},{p:.3,r:'술이 지나쳐 다음 날 하루를 앓아누웠습니다.',fx:{b:6,h:-3}}]});
+E.push({id:'gye',min:20,max:65,w:6,once:true,when:s=>notSlave(s)&&s.stats.wealth>=15,t:'계 모임',
+  x:s=>`동네 사람들이 곗돈을 모아 서로 돕는 계를 만들자며 ${N(s)}를 찾아왔습니다.`,
+  c:[{l:'계에 들어 곗돈을 낸다',d:'엽전 10냥',o:[{p:.8,r:'서로 번갈아 목돈을 받아 큰일을 치르는 데 보탰습니다. 이웃과 정이 두터워졌습니다.',fx:{b:9,c:-10,w:2}},{p:.2,r:'곗돈을 들고 계주가 도망쳤습니다.',fx:{b:-4,c:-10,w:-6}}]},
+     {l:'사양한다',o:[{p:1,r:'혼자 힘으로 꾸려 가기로 했습니다.',fx:{b:-1}}]}]});
+E.push({id:'hyangyak',min:25,max:60,w:5,once:true,when:s=>s.status==='yangban'||s.stats.honor>=20,t:'향약',
+  x:s=>`고을에서 향약을 정해 서로 돕고 잘못을 바로잡자는 모임이 열립니다.`,
+  c:[{l:'약정(임원)을 맡는다',o:[{p:.7,r:'고을의 시비를 가리고 돕는 일에 앞장서 존경을 받았습니다.',fx:{o:8,b:6,h:-2}},{p:.3,r:'이웃 사이의 다툼에 끼어 곤란한 일도 있었습니다.',fx:{o:3,b:-3}}]},
+     {l:'참석만 한다',o:[{p:1,r:'모임에 이름만 올렸습니다.',fx:{o:1}}]}]});
+E.push({id:'sihoe',min:18,max:55,w:7,repeat:3,when:s=>male(s)&&s.status==='yangban'&&s.stats.learn>=25,t:'시회',
+  x:s=>`벗들이 정자에 모여 운자를 놓고 시를 짓는 시회를 열었습니다.`,
+  c:[{l:'붓을 들고 시를 지어 낸다',o:[{p:.6,r:s=>`${N(s)}의 시가 좌중의 칭찬을 받았습니다.`,fx:{l:6,o:4,b:5}},{p:.4,r:'운자를 맞추지 못해 한참 고민하다 겨우 마쳤습니다.',fx:{l:4,b:3}}]},
+     {l:'술잔만 기울이며 구경한다',o:[{p:1,r:'술과 풍류를 즐겼습니다.',fx:{b:5,h:-1}}]}]});
+E.push({id:'travel',min:24,max:60,w:4,once:true,when:s=>male(s)&&hi(s)&&s.stats.wealth>=35,t:'산천 유람',
+  x:s=>`벗이 금강산과 관동팔경을 유람하자며 ${N(s)}를 찾아왔습니다. 몇 달 걸리는 먼 길입니다.`,
+  c:[{l:'함께 떠난다',d:'엽전 25냥',o:[{p:.85,r:'명승을 돌며 시를 짓고 견문을 넓혔습니다.',fx:{l:8,o:4,b:5,h:2,c:-25}},{p:.15,r:'산길에서 병이 나 고생했지만 귀한 경험이었습니다.',fx:{l:6,h:-10,c:-25}}]},
+     {l:'집을 지킨다',o:[{p:1,r:'책 속에서 산천을 유람했습니다.',fx:{l:3}}]}]});
+E.push({id:'gamble',min:18,max:55,w:4,repeat:2,when:s=>male(s)&&s.status!=='cheonmin',t:'노름판',
+  x:s=>`장터 뒷골목에서 투전판이 벌어졌습니다. 누군가 ${josa(N(s),'에게','에게')} 슬쩍 패를 건넵니다.`,
+  c:[{l:'한 판만 해 본다',d:'잃을 수도 있습니다',o:[{p:.42,r:'운이 따라 판돈을 쓸어 담았습니다.',fx:{c:28,o:-3}},{p:.58,r:'가진 돈을 털리고 빈손으로 돌아왔습니다.',fx:{c:-22,o:-4,b:-2}}]},
+     {l:'고개를 젓고 자리를 뜬다',o:[{p:1,r:'노름에서 손을 떼니 마음이 편했습니다.',fx:{o:2}}]}]});
+E.push({id:'drink',min:18,max:60,w:4,repeat:4,when:s=>male(s),t:'술자리',
+  x:s=>`친구들이 주막으로 ${josa(N(s),'을','를')} 끌었습니다. 막걸리 잔이 돕니다.`,
+  o:[{p:.65,r:'취기 속에 하룻밤 웃고 떠들었습니다.',fx:{b:6,h:-2,c:-3}},{p:.35,r:'너무 마셔 다음 날 일어나지 못했습니다. 할 일을 놓쳤습니다.',fx:{b:3,h:-4,w:-3}}]});
+E.push({id:'bandit',min:18,max:60,w:3,repeat:2,t:'도적떼',
+  x:s=>`산 너머 마을에 도적떼가 들었다는 소문이 돌더니, 밤에 ${N(s)}의 집 근처에도 낯선 그림자가 어른거립니다.`,
+  c:[{l:'식구를 모아 맞선다',o:[{p:.5,r:'이웃들과 힘을 모아 도적을 쫓아냈습니다.',fx:{o:6,b:5,h:-3}},{p:.5,r:'몸싸움 끝에 다쳤고 재물도 빼앗겼습니다.',fx:{h:-12,w:-8,c:-14}}]},
+     {l:'광에 곡식을 내주고 보낸다',o:[{p:1,r:'곡식을 내주고 목숨은 건졌습니다.',fx:{w:-7,c:-8,b:-1}}]},
+     {l:'몰래 관아에 알린다',o:[{p:.6,r:'포졸이 출동해 도적을 붙잡았습니다.',fx:{o:4,b:2}},{p:.4,r:'포졸이 늦게 도착해 도적은 이미 사라졌습니다.',fx:{w:-4}}]}]});
+E.push({id:'corvee',min:16,max:50,w:6,repeat:4,when:s=>s.status==='sangmin'||s.status==='cheonmin',t:'부역',
+  x:s=>`관아에서 성을 고치고 제방을 쌓을 일꾼을 뽑는다는 방이 붙었습니다. ${N(s)}의 이름이 올랐습니다.`,
+  c:[{l:'열흘간 부역에 나선다',o:[{p:1,r:'돌을 지고 나르며 몸이 상했지만 함께 일한 이들과 정이 들었습니다.',fx:{h:-6,b:4,o:1}}]},
+     {l:'값을 내고 사람을 사서 보낸다',d:'엽전 8냥',o:[{p:1,r:'돈을 내고 부역을 면했습니다.',fx:{c:-8}}]}]});
+E.push({id:'ams',min:28,max:62,w:3,repeat:2,when:s=>s.office>=2,t:'암행어사 출두',
+  x:s=>`"암행어사 출두야!" 관아에 우렁찬 외침이 울렸습니다. ${N(s)}의 고을 장부가 샅샅이 조사됩니다.`,
+  o:[{p:s=>clamp(.3+s.stats.honor/160,.2,.9),r:'장부에 흠이 없어 칭찬을 받았습니다.',fx:{o:10,b:2}},{p:s=>1-clamp(.3+s.stats.honor/160,.2,.9),r:'어사에게 지적을 받고 근신하게 되었습니다.',fx:{o:-8,w:-4},off:-1}]});
+E.push({id:'sick_parent',min:25,max:60,w:5,repeat:2,when:notSlave,t:'부모의 병환',
+  x:s=>`연로한 부모님이 자리에 누우셨습니다. 의원은 약을 오래 써야 한다고 합니다.`,
+  c:[{l:'좋은 약재를 사서 쓴다',d:'엽전 14냥',o:[{p:.8,r:'정성이 닿아 부모님의 병세가 호전되었습니다.',fx:{o:6,b:6,c:-14}},{p:.2,r:'약을 써도 끝내 병이 깊어졌습니다. 효성은 이웃에 알려졌습니다.',fx:{o:6,b:3,c:-14,h:-3}}]},
+     {l:'밤낮으로 곁에서 간병한다',o:[{p:1,r:'몇 달을 곁에서 간병했습니다. 몸은 쇠했지만 마음은 편했습니다.',fx:{h:-6,o:4,b:5}}]}]});
+E.push({id:'mourning',min:30,max:65,w:4,once:true,when:s=>male(s)&&s.status==='yangban',t:'부모의 상',
+  x:s=>`부모님이 돌아가셨습니다. 양반가에서는 삼년상을 치르는 것이 법도입니다.`,
+  c:[{l:'삼년상을 온전히 지킨다',d:'3년 동안 관직에 나설 수 없습니다',o:[{p:1,r:'여막을 지키며 상을 마쳤습니다. 효자라는 소문이 고을에 났습니다.',fx:{o:14,b:4,h:-7,w:-8}}]},
+     {l:'일을 이어 가며 상례를 간소히 치른다',o:[{p:1,r:'상례를 간소히 마쳤으나 일부에서 눈총을 받았습니다.',fx:{o:-5,w:3}}]}]});
+E.push({id:'filial',min:30,max:70,w:1.5,once:true,when:s=>s.stats.honor>=40&&s.stats.bond>=45,t:'효행 포상',
+  x:s=>`${N(s)}의 효행과 선행이 고을에 널리 퍼져 관아에서 알게 되었습니다. 임금께 보고하여 정려를 세울 수도 있다고 합니다.`,
+  o:[{p:1,r:'마을 앞에 정려가 세워졌습니다. 집안의 영광입니다.',fx:{o:18,b:8},set:{jeongnyeo:1}}]});
+E.push({id:'wellspring',min:40,max:75,w:4,once:true,t:'약수',
+  x:s=>`산골 약수터가 병에 좋다는 소문이 났습니다.`,
+  c:[{l:'며칠 머물며 약수를 마신다',d:'엽전 4냥',o:[{p:.7,r:'맑은 물을 마시고 산바람을 쐬었더니 몸이 가벼워졌습니다.',fx:{h:7,c:-4}},{p:.3,r:'큰 효험은 없었지만 마음이 편해졌습니다.',fx:{h:2,b:2,c:-4}}]},
+     {l:'가지 않는다',o:[{p:1,r:'일이 바빠 가지 못했습니다.',fx:{w:1}}]}]});
+E.push({id:'oldfriend',min:48,max:85,w:5,repeat:3,t:'오랜 벗의 부음',
+  x:s=>`어릴 적부터 알던 벗의 부음이 들려왔습니다.`,
+  o:[{p:1,r:'장례에 가서 오래 앉아 있다 돌아왔습니다. 한 시절이 저물어 갑니다.',fx:{b:-5,h:-2}}]});
+E.push({id:'grandchild',min:48,max:85,w:6,repeat:4,when:s=>s.children>0,t:'손주',
+  x:s=>`장성한 자식이 손주를 안고 인사를 왔습니다.`,
+  o:[{p:1,r:'손주를 무릎에 앉히고 옛이야기를 들려주었습니다.',fx:{b:8,h:2}}]});
+
+/* 집안 형편에 따른 일 */
+E.push({id:'yb_poor',min:20,max:55,w:7,repeat:2,when:s=>s.home==='jan'&&s.stats.wealth<30,t:'양반의 체면',
+  x:s=>`곳간은 비었는데 문중에서 큰 행사가 있어 체면을 지켜야 합니다. 집에는 팔 만한 가보가 하나 남아 있습니다.`,
+  c:[{l:'가보를 팔아 체면을 차린다',o:[{p:1,r:'가보를 내놓고 행사를 치렀습니다. 문중에서는 체면을 세웠다고 칭찬했습니다.',fx:{o:6,w:-4,c:30}}]},
+     {l:'사정을 털어놓고 불참한다',o:[{p:1,r:'정직하게 말했지만 말이 돌았습니다.',fx:{o:-5,b:2}}]}]});
+E.push({id:'rent_up',min:18,max:55,w:6,repeat:3,when:s=>s.home==='ten',t:'소작료',
+  x:s=>`지주가 올해부터 소작료를 더 받겠다고 통보했습니다.`,
+  c:[{l:'다른 소작인들과 항의한다',o:[{p:.35,r:'소작인들이 뭉치자 지주도 한 걸음 물러섰습니다.',fx:{b:7,w:3}},{p:.65,r:'지주의 눈 밖에 나 땅을 일부 떼어 줘야 했습니다.',fx:{w:-9,b:3}}]},
+     {l:'참고 따른다',o:[{p:1,r:'수확의 더 큰 몫을 바쳤습니다. 살림이 팍팍해졌습니다.',fx:{w:-7,h:-2}}]}]});
+E.push({id:'smith',min:18,max:55,w:7,repeat:2,when:s=>s.home==='craft',t:'솜씨 자랑',
+  x:s=>`${N(s)}가 만든 물건이 솜씨가 좋다고 소문이 났습니다. 양반집에서 큰 주문이 들어왔습니다.`,
+  c:[{l:'며칠 밤을 새워 정성껏 만든다',o:[{p:.8,r:'만들어 낸 물건이 주인의 마음에 들어 후한 값을 받았습니다.',fx:{w:8,o:3,c:30,h:-3}},{p:.2,r:'무리하다 실수를 하여 값을 깎였습니다.',fx:{w:-1,h:-4,c:6}}]},
+     {l:'적당히 만들어 납품한다',o:[{p:1,r:'제 값만 받고 넘겼습니다.',fx:{c:12}}]}]});
+E.push({id:'fisher',min:16,max:55,w:7,repeat:4,when:s=>s.home==='fish',t:'바다',
+  x:s=>`새벽 포구에 배를 띄울 때가 되었습니다. 하늘빛이 심상치 않습니다.`,
+  c:[{l:'위험을 무릅쓰고 나간다',o:[{p:.6,r:'만선으로 돌아왔습니다. 생선을 팔아 한 철 살림이 폈습니다.',fx:{w:8,c:20}},{p:.33,r:'풍랑을 만나 그물을 잃고 겨우 돌아왔습니다.',fx:{w:-6,h:-4}},{p:.07,die:'바다에서 풍랑을 만남'}]},
+     {l:'포구에서 그물을 손본다',o:[{p:1,r:'오늘은 육지에서 그물을 기웠습니다.',fx:{w:1}}]}]});
+E.push({id:'baek_slight',min:12,max:60,w:7,repeat:5,when:s=>s.home==='baek'||s.home==='jaein',t:'천대',
+  x:s=>`장터에서 낯선 양반이 ${N(s)}를 보더니 길을 비키라며 호통쳤습니다. 지나던 아이들이 수군거립니다.`,
+  o:[{p:.6,r:'고개를 숙이고 길을 비켰습니다. 입안에 쓴맛이 남았습니다.',fx:{o:-2,b:-1}},{p:.4,r:'이웃 노인이 나서서 양반을 말렸습니다. 아직 마음 쓰는 이도 있었습니다.',fx:{b:4}}]});
+E.push({id:'slave_marry',min:15,max:28,w:7,once:true,when:s=>sl(s)&&!s.married,t:'노비의 혼인',
+  x:s=>`같은 집 노비 중 한 사람과 짝을 맺으라는 말이 안채에서 내려왔습니다. 자식은 대대로 이 집의 노비가 됩니다.`,
+  c:[{l:'따른다',o:[{p:1,r:'혼례상 없이 짝을 맺었습니다. 서로 기대며 살아가기로 했습니다.',mar:1,fx:{b:8,o:-1}}]},
+     {l:'다른 마을에 사는 이와 몰래 정을 나눈다',d:'주인에게 알려지면 벌을 받습니다',o:[{p:.5,r:'먼 마을의 짝과 남몰래 혼인했습니다.',mar:1,fx:{b:9}},{p:.5,r:'들켜서 매를 맞고 혼인은 깨졌습니다.',fx:{h:-9,b:-6}}]}]});
+E.push({id:'merchant_deal',min:20,max:55,w:6,repeat:2,when:s=>s.home==='trade'||(s.status==='jungin'&&s.stats.wealth>=40),t:'큰 거래',
+  x:s=>`객주가 한 번에 많은 물량을 사겠다며 큰 거래를 제안했습니다.`,
+  c:[{l:'가진 돈을 모두 걸어 받는다',d:'엽전 40냥을 투자',o:[{p:.6,r:'거래가 성사되어 큰 이익을 남겼습니다.',fx:{w:12,c:90}},{p:.4,r:'객주가 대금을 떼먹고 사라졌습니다.',fx:{w:-8,c:-40,b:-3}}]},
+     {l:'조심스럽게 소량만 한다',o:[{p:1,r:'작게 팔아 안전한 이익을 얻었습니다.',fx:{w:3,c:12}}]}]});
+E.push({id:'tenant_rights',min:22,max:60,w:3,once:true,when:s=>s.status==='sangmin'&&s.stats.wealth>=45,t:'땅 매입',
+  x:s=>`가세가 기울어 땅을 내놓은 양반이 ${N(s)}에게 헐값에 논을 팔겠다고 합니다.`,
+  c:[{l:'빚을 내서라도 산다',d:'엽전 40냥',o:[{p:.8,r:'논을 사들여 내 땅을 늘렸습니다.',fx:{w:7,c:-40,o:2}},{p:.2,r:'빚 때문에 허리가 휘었습니다.',fx:{w:-5,c:-40}}]},
+     {l:'지금 가진 것을 지킨다',o:[{p:1,r:'욕심 부리지 않기로 했습니다.',fx:{w:1}}]}]});
+E.push({id:'scholar_rec',min:30,max:55,w:5,once:true,when:s=>male(s)&&s.status==='yangban'&&s.flags.giveup&&s.stats.learn>=45,t:'천거',
+  x:s=>`과거는 접었지만 학문과 덕행이 알려져 고을 어른이 ${N(s)}를 학행으로 천거하겠다고 합니다.`,
+  o:[{p:.5,r:'천거되어 말단 관직을 받았습니다.',fx:{o:10,w:4},off:1},{p:.5,r:'천거는 올랐으나 조정에서 받아들이지 않았습니다.',fx:{o:4,l:1}}]});
+E.push({id:'bridal',min:16,max:30,w:6,once:true,when:s=>fem(s)&&!s.married&&s.status!=='cheonmin',t:'혼수',
+  x:s=>`혼인 날이 잡혀 혼수를 준비해야 합니다. 이불과 그릇, 옷가지를 장만할 일이 큽니다.`,
+  c:[{l:'정성껏 넉넉히 장만한다',d:'엽전 20냥',o:[{p:1,r:'넉넉한 혼수로 시댁에서 인정받았습니다.',fx:{o:5,b:3,c:-20}}]},
+     {l:'형편에 맞게 간소히 장만한다',o:[{p:1,r:'있는 것으로 정성을 담았습니다.',fx:{b:1}}]}]});
+/* ---------- 사건 데이터 4: 연도별 역사 사건 (해당 연도에 한 번씩 일어남) ---------- */
+const yb=s=>s.status==='yangban', gov=s=>s.office>=1;
+const anyOf=(...a)=>s=>a.includes(s.region);
+H.push(
+ {id:'gyeyu',from:1453,to:1453,min:10,when:s=>s.region==='한성'||gov(s),t:'계유정난',
+  x:s=>`한성에서 수양대군이 김종서 등을 제거했다는 소식이 퍼졌습니다. 조정이 크게 흔들립니다.`,
+  o:[{p:.6,r:'소문 속에서 말을 아끼며 몸을 낮추었습니다.',fx:{b:-2,w:-2}},{p:.4,r:'줄을 잘못 서 지인들이 화를 입었습니다. 마음이 무겁습니다.',fx:{b:-6,o:-2}}]},
+ {id:'saryuk',from:1456,to:1456,min:10,when:yb,t:'사육신 사건',
+  x:s=>`단종 복위를 꾀하던 신하들이 처형되었다는 소식이 전해졌습니다. 선비들 사이에 한숨이 돕니다.`,
+  o:[{p:1,r:'충절을 두고 밤새 논란이 오갔습니다. 침묵하는 것이 상책이었습니다.',fx:{l:1,o:-1}}]},
+ {id:'muo',from:1498,to:1498,min:12,when:s=>yb(s)&&s.stats.learn>=30,t:'무오사화',
+  x:s=>`김종직의 글을 사초에 실은 일로 사림이 큰 화를 입었습니다. 선비들 사이에 겁이 번졌습니다.`,
+  o:[{p:.7,r:'글을 쓰고 말하는 것을 조심하게 되었습니다.',fx:{o:-2,l:2}},{p:.3,r:'가까운 선비가 유배를 갔습니다. 서신 하나 남기기도 어려워졌습니다.',fx:{b:-6,o:-3}}]},
+ {id:'eonmun',from:1504,to:1504,min:8,t:'언문 금지령',
+  x:s=>`임금이 언문(한글)을 가르치거나 쓰는 것을 금했다는 방이 붙었습니다. 한글로 소식을 주고받던 이들이 두려워합니다.`,
+  o:[{p:s=>s.flags.literate||isFem(s)?1:.4,r:'언문 편지를 숨겨 두고 조심스럽게 지냈습니다.',fx:{b:-2,l:-1}},{p:s=>s.flags.literate||isFem(s)?0:.6,r:'언문을 몰라 별다른 일은 없었습니다.',fx:{w:0}}]},
+ {id:'giyo',from:1519,to:1519,min:12,when:s=>yb(s)&&s.stats.learn>=35,t:'기묘사화',
+  x:s=>`조광조 일파가 사약을 받았다는 소식이 번졌습니다. 개혁을 꿈꾸던 젊은 선비들이 숨을 죽입니다.`,
+  o:[{p:1,r:'뜻은 같았으나 입을 다물고 지냈습니다. 서원과 향촌에서 학문을 닦자는 이야기가 오갔습니다.',fx:{l:3,o:1,b:-2}}]},
+ {id:'eulmyo',from:1555,to:1555,min:8,when:anyOf('전라','경상'),t:'을묘왜변',
+  x:s=>`왜구가 배를 타고 남쪽 해안에 쳐들어와 달량포가 함락되었습니다. 마을마다 피난 짐을 쌉니다.`,
+  o:[{p:.65,r:'산골 친척 집으로 피했다가 잠잠해진 뒤 돌아왔습니다.',fx:{w:-6,h:-2}},{p:.35,r:'피난 중 짐을 잃고 몸이 상했습니다.',fx:{w:-10,h:-8}}]},
+ {id:'ulsa',from:1545,to:1545,min:12,when:yb,t:'을사사화',
+  x:s=>`외척 사이의 다툼이 피바람으로 번졌습니다. 조정의 선비들이 유배와 사약으로 흩어졌습니다.`,
+  o:[{p:1,r:'권력의 무상함을 가까이에서 지켜보았습니다.',fx:{o:-1,b:-2}}]},
+ {id:'injo',from:1623,to:1623,min:8,when:s=>s.region==='한성'||gov(s),t:'인조반정',
+  x:s=>`서인 일파가 군사를 이끌고 궁궐을 장악해 광해군을 내쫓았습니다. 조정의 사람들이 새로 바뀝니다.`,
+  o:[{p:.5,r:'새 조정에 줄이 닿아 한결 형편이 나아졌습니다.',fx:{o:4,w:3}},{p:.5,r:'바뀐 판도 속에서 소식만 듣고 조용히 지냈습니다.',fx:{b:-1}}]},
+ {id:'jeongmyo',from:1627,to:1627,min:8,when:anyOf('평안','황해'),t:'정묘호란',
+  x:s=>`후금의 군대가 압록강을 넘어 평안도로 밀려들었습니다. 고을이 피난길로 가득합니다.`,
+  o:[{p:.6,r:'식구를 데리고 남쪽으로 피했다가 강화 소식을 듣고 돌아왔습니다.',fx:{w:-12,h:-5}},{p:.4,r:'피난 중 헤어진 식구가 있습니다. 소식을 수소문하며 몇 달을 보냈습니다.',fx:{b:-12,h:-8,w:-8}}]},
+ {id:'hamel',from:1653,to:1653,min:8,when:anyOf('전라','경상','한성'),t:'서양 사람',
+  x:s=>`제주에 표류한 서양 사람들이 한성으로 올라왔다는 소문이 돕니다. 코가 높고 눈이 파랗다고들 합니다.`,
+  o:[{p:1,r:'소문을 듣고 구경 갈까 고민하다 일에 쫓겨 못 갔습니다. 세상이 넓다는 생각이 들었습니다.',fx:{l:1,b:2}}]},
+ {id:'yesong',from:1659,to:1660,min:15,when:yb,t:'예송 논쟁',
+  x:s=>`임금의 상복을 얼마 동안 입을지를 두고 서인과 남인이 크게 다투고 있습니다.`,
+  c:[{l:'서인 편에 서서 논쟁에 나선다',o:[{p:.55,r:'서인의 논리를 편 글이 호평을 받았습니다.',fx:{o:5,l:3,b:3}},{p:.45,r:'상대 당의 미움을 샀습니다.',fx:{o:-3,b:-3,l:2}}]},
+     {l:'남인 편에 서서 논쟁에 나선다',o:[{p:.45,r:'남인의 논리를 편 글이 널리 읽혔습니다.',fx:{o:5,l:3,b:3}},{p:.55,r:'상대 당의 공세에 시달렸습니다.',fx:{o:-3,b:-3,l:2}}]},
+     {l:'말을 아끼고 학문에 힘쓴다',o:[{p:1,r:'시비를 멀리하고 경전을 읽었습니다.',fx:{l:4}}]}]},
+ {id:'sangpyeong',from:1678,to:1678,min:8,t:'상평통보',
+  x:s=>`나라에서 상평통보라는 엽전을 만들어 쓰게 했습니다. 장터마다 쌀이나 베 대신 엽전으로 값을 치르기 시작합니다.`,
+  o:[{p:s=>s.stats.wealth>=30?.7:.4,r:'장에서 엽전을 쥐고 물건을 사는 일이 신기하면서도 편했습니다. 여유 있는 집은 엽전을 모으기 시작했습니다.',fx:{w:3,c:12}},{p:s=>s.stats.wealth>=30?.3:.6,r:'엽전이 귀해 쌀로 갚던 빚을 엽전으로 요구받아 곤욕을 치렀습니다.',fx:{w:-3,c:-3}}]},
+ {id:'gyeonghwan',from:1680,to:1680,min:15,when:s=>yb(s)&&gov(s),t:'경신환국',
+  x:s=>`조정에서 남인이 대거 쫓겨나고 서인이 정권을 잡았습니다. 관직이 한꺼번에 뒤바뀝니다.`,
+  o:[{p:.5,r:'새로운 당파에 속해 자리를 지켰습니다.',fx:{o:3}},{p:.5,r:'당파가 밀려 관직을 잃었습니다.',fx:{o:-6,w:-4},off:-1}]},
+ {id:'daedong',from:1708,to:1708,min:10,when:s=>s.status!=='cheonmin',t:'대동법 전국 확대',
+  x:s=>`황해도에서 대동법을 시행하며 이제 온 나라가 공물을 쌀과 베로 내게 되었습니다.`,
+  o:[{p:s=>s.stats.wealth<40?.8:.2,r:'가난한 집은 공물 부담이 줄어 한숨을 돌렸습니다.',fx:{w:5,b:2}},{p:s=>s.stats.wealth<40?.2:.8,r:'땅이 많은 집은 세금이 늘었다며 투덜거렸습니다.',fx:{w:-4}}]},
+ {id:'ijwa',from:1728,to:1728,min:8,when:s=>['충청','경상','전라'].includes(s.region),t:'이인좌의 난',
+  x:s=>`청주성이 반란군에 넘어갔다는 소식이 사방으로 퍼졌습니다. 관군이 이동하며 길이 어지럽습니다.`,
+  o:[{p:.7,r:'난이 진압될 때까지 문을 닫고 지냈습니다.',fx:{w:-4,b:-1}},{p:.3,r:'오가는 군사에게 곡식을 징발당했습니다.',fx:{w:-9,h:-3,c:-8}}]},
+ {id:'gyunyeok',from:1750,to:1751,min:15,when:s=>s.status==='sangmin',t:'균역법',
+  x:s=>`군포를 두 필에서 한 필로 줄이는 균역법이 시행되었습니다. 평민들의 부담이 가벼워집니다.`,
+  o:[{p:1,r:'군포 한 필이 줄어 한 해 살림이 숨통이 트였습니다.',fx:{w:6,c:10,b:2}}]},
+ {id:'imo',from:1762,to:1762,min:10,when:s=>s.region==='한성'||yb(s),t:'임오화변',
+  x:s=>`사도세자가 뒤주에서 세상을 떠났다는 말이 한성에서 조용히 퍼졌습니다.`,
+  o:[{p:1,r:'사람들은 입을 다물고 서로의 눈치만 살폈습니다.',fx:{b:-2,l:1}}]},
+ {id:'goguma',from:1763,to:1764,min:8,when:anyOf('경상','전라','한성','경기'),t:'고구마',
+  x:s=>`일본에서 들여온 고구마가 흉년에 구황작물로 쓸 만하다는 소문이 번졌습니다. 씨고구마를 얻으러 다니는 이들이 있습니다.`,
+  c:[{l:'씨고구마를 얻어 와 밭 한쪽에 심는다',o:[{p:.75,r:'이듬해 가을 땅속에서 알뿌리가 주렁주렁 나왔습니다. 굶는 일이 줄었습니다.',fx:{w:5,h:4,b:3}},{p:.25,r:'기르는 법을 몰라 대부분 썩었습니다.',fx:{w:-1}}]},
+     {l:'낯선 작물이라 지켜보기만 한다',o:[{p:1,r:'다른 집에서 먼저 길러 보고 이야기해 주기를 기다렸습니다.',fx:{w:0}}]}]},
+ {id:'hwaseong',from:1794,to:1796,min:12,when:s=>['경기','한성'].includes(s.region)&&s.status!=='yangban',t:'화성 축성',
+  x:s=>`수원에 새 성을 쌓는다며 일꾼을 모집합니다. 품삯을 후하게 준다는 말이 있습니다.`,
+  c:[{l:'일꾼으로 나선다',o:[{p:1,r:'돌을 나르고 쌓는 일에 몇 달을 보냈습니다. 품삯을 받고 새 성이 올라가는 것을 지켜보았습니다.',fx:{c:25,h:-4,b:4,o:1}}]},
+     {l:'집을 지킨다',o:[{p:1,r:'멀리서 성 쌓는 소문만 들었습니다.',fx:{w:0}}]}]},
+ {id:'seoh',from:1791,to:1791,min:14,when:s=>s.region==='전라'||s.region==='한성',t:'서학',
+  x:s=>`서학(천주교) 서적이 몰래 돌고 있다는 말이 고을에 번졌습니다. 신주를 불태웠다는 사건도 들려옵니다.`,
+  c:[{l:'호기심에 서책을 구해 읽어 본다',d:'적발되면 큰 벌을 받습니다',o:[{p:.7,r:'낯선 세상 이야기에 눈이 번쩍 뜨였습니다. 아무도 모르게 책을 돌려보냈습니다.',fx:{l:6,b:-1}},{p:.3,r:'관아에서 소문을 듣고 불려 가 매를 맞았습니다.',fx:{h:-10,o:-6}}]},
+     {l:'가까이하지 않는다',o:[{p:1,r:'소문에는 귀를 막고 지냈습니다.',fx:{o:1}}]}]},
+ {id:'sinyu',from:1801,to:1801,min:10,when:s=>s.region==='한성'||s.region==='충청'||s.region==='전라',t:'신유박해',
+  x:s=>`천주교 신자를 색출하는 박해가 시작되어 고을마다 잡혀가는 사람이 나옵니다.`,
+  o:[{p:.7,r:'끌려가는 이웃을 지켜보며 가슴이 내려앉았습니다.',fx:{b:-4,h:-2}},{p:.3,r:'가까운 이가 연루되어 크게 곤욕을 치렀습니다.',fx:{b:-10,h:-6,w:-6}}]},
+ {id:'donghak0',from:1860,to:1860,min:10,when:anyOf('경상','경주'.slice(0,0)||'경상'),t:'동학의 시작',
+  x:s=>`경주에서 최제우라는 사람이 사람이 곧 하늘이라는 가르침을 편다는 소문이 번졌습니다.`,
+  o:[{p:1,r:'신분이 달라도 모두 하늘이라는 말이 귓가에 오래 남았습니다.',fx:{b:2,o:1}}]},
+ {id:'wongnap',from:1865,to:1867,min:10,when:s=>s.status!=='cheonmin',t:'경복궁 중건',
+  x:s=>`나라에서 경복궁을 다시 짓는다며 원납전을 걷고 당백전을 찍어 냈습니다. 물가가 널뛰기 시작했습니다.`,
+  o:[{p:s=>s.stats.wealth>=40?.7:.3,r:'원납전 명목으로 돈을 거둬 갔습니다. 살림이 쪼들렸습니다.',fx:{w:-8,c:-14}},{p:s=>s.stats.wealth>=40?.3:.7,r:'당백전 때문에 장바닥의 물가가 널뛰어 장사가 어려웠습니다.',fx:{w:-5,c:-6}}]},
+ {id:'byeongin',from:1866,to:1866,min:8,when:anyOf('경기','한성','황해'),t:'병인양요',
+  x:s=>`프랑스 군함이 강화도에 쳐들어와 약탈을 하고 물러갔다는 소식입니다. 한성이 한동안 술렁였습니다.`,
+  o:[{p:1,r:'양이를 쫓아냈다며 마을마다 들뜬 분위기가 이어졌습니다.',fx:{b:1,w:-3}}]},
+ {id:'gaehang',from:1876,to:1876,min:10,t:'개항',
+  x:s=>`강화도에서 일본과 조약을 맺어 부산을 비롯한 항구가 열렸습니다. 낯선 물건과 소문이 밀려듭니다.`,
+  o:[{p:.5,r:'장터에 서양 성냥과 광목이 나돌기 시작했습니다. 길쌈 팔기가 어려워졌습니다.',fx:{w:-2,l:1}},{p:.5,r:'새 물건과 새 소식에 눈을 떴습니다.',fx:{l:3,w:1}}]},
+ {id:'gapsin',from:1884,to:1884,min:12,when:s=>s.region==='한성'||gov(s),t:'갑신정변',
+  x:s=>`한성에서 젊은 개화파가 정변을 일으켰으나 사흘 만에 끝났다는 소식입니다.`,
+  o:[{p:1,r:'세상을 바꾸려던 이들의 뜻과 허망한 최후를 두고 사람들이 오래 이야기했습니다.',fx:{l:2,b:-1}}]},
+ {id:'donghak',from:1894,to:1894,min:12,when:s=>s.status!=='yangban',t:'동학농민운동',
+  x:s=>`전라도 고부에서 시작된 농민들의 봉기가 들불처럼 번졌습니다. 사람이 곧 하늘이라는 구호가 들립니다.`,
+  c:[{l:'농민군에 가담한다',d:'진압되면 목숨이 위태롭습니다',o:[{p:.45,r:'폐정개혁을 외치며 행진했고 관아에서 약속을 받아 냈습니다.',fx:{o:6,b:8,h:-5}},{p:.55,r:'우금치에서 관군과 일본군의 총에 쫓기며 간신히 목숨을 건졌습니다.',fx:{h:-24,b:-8,o:-3}}]},
+     {l:'피난하며 지켜본다',o:[{p:1,r:'전란이 지나가기를 기다리며 산속에 숨어 지냈습니다.',fx:{w:-8,h:-5}}]}]},
+ {id:'gabo',from:1894,to:1895,min:7,t:'갑오개혁',
+  x:s=>`조정에서 개혁을 단행하며 양반과 상민의 구분을 없애고 노비 제도를 폐지한다고 선포했습니다. 과거제도도 사라졌습니다.`,
+  o:[{p:s=>s.status==='cheonmin'?1:0,r:s=>`${N(s)}는 이제 법으로 노비가 아닙니다. 이름 앞에 붙던 꼬리표가 떨어졌습니다.`,st:'sangmin',fx:{o:12,b:4},set:{gabo:1}},
+     {p:s=>s.status==='cheonmin'?0:.5,r:'신분을 가르던 옛 법이 사라졌다는 소식에 사람들의 이야기가 한동안 끊이지 않았습니다.',fx:{o:1,b:2},set:{gabo:1}},
+     {p:s=>s.status==='cheonmin'?0:.5,r:'문벌과 과거가 흔들리는 세상에 불안을 느꼈습니다. 앞으로 무엇이 기준이 될지 알 수 없습니다.',fx:{l:1,o:-1},set:{gabo:1}}]},
+ {id:'danbal',from:1895,to:1896,min:14,t:'단발령',
+  x:s=>`상투를 자르라는 단발령이 내려졌습니다. 길목마다 관원이 가위를 들고 서 있습니다.`,
+  c:[{l:'상투를 자르고 따른다',o:[{p:1,r:'상투가 잘려 나갈 때 한참 눈을 감았습니다. 거울 속 모습이 낯설었습니다.',fx:{o:-2,b:-1,l:1}}]},
+     {l:'산골로 피해 버틴다',d:'몸을 숨겨야 합니다',o:[{p:.6,r:'산에서 몇 달을 지내다 단발령이 완화된 뒤 돌아왔습니다.',fx:{h:-4,w:-5,o:2}},{p:.4,r:'붙잡혀 곤욕을 치르고 상투가 잘렸습니다.',fx:{h:-5,o:-4}}]}]},
+ {id:'daehan',from:1897,to:1897,min:8,t:'대한제국',
+  x:s=>`임금이 황제의 자리에 올라 나라 이름을 대한제국으로 바꾸었다고 합니다.`,
+  o:[{p:1,r:'새 이름의 나라가 어떻게 달라질지 사람들은 반신반의했습니다.',fx:{b:1}}]},
+ {id:'eulsa',from:1905,to:1905,min:12,t:'을사늑약',
+  x:s=>`일본이 외교권을 빼앗는 조약을 강제로 맺었다는 소식에 사람들이 분통을 터뜨렸습니다. 시일야방성대곡이라는 글이 돌아다닙니다.`,
+  c:[{l:'의병이나 국채보상 모금에 힘을 보탠다',o:[{p:1,r:'마음을 보태는 이들과 함께하며 서로를 격려했습니다.',fx:{o:5,b:6,c:-10}}]},
+     {l:'참담한 마음으로 지켜본다',o:[{p:1,r:'속으로 울분을 삼키며 하루하루를 버텼습니다.',fx:{b:-2,h:-2}}]}]},
+ {id:'gyeongsul',from:1910,to:1910,min:5,t:'경술국치',
+  x:s=>`나라의 이름이 지도에서 사라졌다는 소식이 전해졌습니다. 조선의 오백 년이 끝났습니다.`,
+  o:[{p:1,r:'사람들은 말없이 서로를 바라보았습니다. 앞날이 어떨지 아무도 알지 못했습니다.',fx:{o:-3,b:-3},set:{gyeongsul:1}}]}
+);
+/* ---------- 사건 데이터 5: 돌잡이, 장터, 병, 가족, 여성의 일 ----------
+   fx 키 c 는 엽전(냥), child 는 자녀 수 증감. */
+E.push({id:'dolsang',min:1,max:1,w:999,t:'돌잡이',
+  x:s=>`${N(s)}의 첫돌입니다. 돌상 위에는 실, 붓, 엽전, 그리고 ${josa(s.sex==='m'?'활':'가위','이','가')} 놓였습니다. 아이가 작은 손을 뻗습니다.`,
+  c:[{l:'실타래를 집는다',o:[{p:1,r:'실을 쥐자 오래 살겠다며 어른들이 웃었습니다.',fx:{h:6,b:3}}]},
+     {l:'붓을 집는다',o:[{p:1,r:'붓을 쥐자 글재주가 있겠다는 덕담이 오갔습니다.',fx:{l:6,o:2}}]},
+     {l:'엽전을 집는다',o:[{p:1,r:'엽전을 움켜쥐자 재물 복이 있겠다며 모두 웃었습니다.',fx:{w:5,b:2,c:3}}]},
+     {l:'활을 집는다',when:s=>s.sex==='m',o:[{p:1,r:'활을 쥐자 씩씩하게 자라겠다는 덕담이 오갔습니다.',fx:{h:4,o:3}}]},
+     {l:'가위를 집는다',when:s=>s.sex==='f',o:[{p:1,r:'가위를 쥐자 손재주가 좋겠다는 덕담이 오갔습니다.',fx:{w:3,b:2,l:2}}]}]});
+
+E.push({id:'market',min:8,max:70,w:6,repeat:12,t:'오일장',
+  x:s=>`닷새마다 서는 장날입니다. 장터는 사람 소리와 흥정 소리로 북적입니다.`,
+  c:[{l:'집에서 만든 물건을 가지고 나가 판다',o:[
+      {p:.65,r:'물건이 제값에 팔려 주머니가 두둑해졌습니다.',fx:{c:6,w:2,b:2}},
+      {p:.35,r:'값을 후려치는 장사꾼에게 걸려 손해를 봤습니다.',fx:{c:1,w:-1}}]},
+     {l:'구경하며 국밥 한 그릇을 먹는다',d:'엽전 2냥',when:s=>s.coin>=2,o:[{p:1,r:'따뜻한 국밥과 장터의 소문을 함께 얻었습니다.',fx:{h:2,b:3,c:-2}}]},
+     {l:'일손이 바빠 가지 않는다',o:[{p:1,r:'집에 남아 할 일을 했습니다.',fx:{w:1}}]}]});
+
+E.push({id:'epidemic',min:6,max:70,w:3,repeat:3,t:'마을 역병',
+  x:s=>`마을에 열병이 돌아 집집마다 앓는 사람이 생겼습니다.`,
+  c:[{l:'앓는 이웃을 찾아 돌본다',o:[
+      {p:.12,die:'역병'},
+      {p:.88,r:'이웃을 돌보다 몸은 상했지만 마을 사람들이 오래 기억했습니다.',fx:{b:8,o:4,h:-8}}]},
+     {l:'문을 닫아걸고 나다니지 않는다',o:[
+      {p:.03,die:'역병'},
+      {p:.97,r:'식구들과 집에 틀어박혀 병이 지나가기를 기다렸습니다.',fx:{b:-3,h:-1}}]}]});
+
+E.push({id:'childsick',min:20,max:60,w:5,repeat:3,when:s=>s.children>0,t:'자식의 병',
+  x:s=>`어린 자식이 사흘째 열에 들떠 있습니다. 밥도 넘기지 못합니다.`,
+  c:[{l:'의원을 불러 약을 쓴다',d:'엽전 8냥',when:s=>s.coin>=8,o:[
+      {p:.9,r:'약이 들자 아이의 열이 내렸습니다.',fx:{c:-8,b:4}},
+      {p:.1,r:'온 정성을 다했지만 아이를 지키지 못했습니다.',fx:{c:-8,b:-10,h:-5},child:-1}]},
+     {l:'달인 약초와 정성으로 간호한다',o:[
+      {p:.75,r:'밤을 새워 간호하자 아이가 일어났습니다.',fx:{h:-4,b:5}},
+      {p:.25,r:'끝내 아이를 잃었습니다. 한참을 앓았습니다.',fx:{b:-12,h:-8},child:-1}]}]});
+
+E.push({id:'loan',min:20,max:60,w:5,repeat:3,when:s=>s.stats.wealth<26&&s.status!=='cheonmin',t:'빚',
+  x:s=>`봄이 되자 곡식이 떨어졌습니다. 이웃 부자가 장리 빚을 놓겠다고 합니다. 가을에 곱절로 갚아야 합니다.`,
+  c:[{l:'장리 빚을 쓴다',o:[
+      {p:.5,r:'빚으로 봄을 났고 가을에 겨우 갚았습니다.',fx:{w:3,h:2,c:2}},
+      {p:.5,r:'이자에 이자가 붙어 빚이 불어났습니다.',fx:{w:-10,h:-2,c:-4}}]},
+     {l:'허리띠를 졸라매고 버틴다',o:[{p:1,r:'죽 한 그릇으로 하루를 나며 봄을 넘겼습니다.',fx:{h:-6,w:2}}]}]});
+
+E.push({id:'tax',min:18,max:62,w:5,repeat:4,when:s=>s.status==='sangmin',t:'아전의 횡포',
+  x:s=>`세를 거두러 온 아전이 장부에 없는 이름으로 곡식을 더 내라고 합니다.`,
+  c:[{l:'달라는 대로 낸다',d:'엽전 5냥',when:s=>s.coin>=5,o:[{p:1,r:'속은 쓰렸지만 일을 키우지 않았습니다.',fx:{w:-4,c:-5}}]},
+     {l:'장부를 보이라며 따진다',o:[
+      {p:.3,r:'이웃들이 편을 들어 주자 아전이 물러섰습니다.',fx:{o:4,b:5}},
+      {p:.7,r:'아전의 눈 밖에 나 곤장을 맞았습니다.',fx:{h:-8,o:-3,w:-3}}]}]});
+
+E.push({id:'locust',min:10,max:70,w:2,repeat:2,t:'메뚜기떼',
+  x:s=>`하늘이 어두워지더니 메뚜기떼가 논밭으로 내려앉았습니다.`,
+  o:[{p:.5,r:'온 마을이 나가 불을 놓고 쫓았지만 절반은 먹혔습니다.',fx:{w:-7,h:-2,b:3}},
+     {p:.5,r:'새벽부터 밭에 나가 지켰습니다. 간신히 피해를 줄였습니다.',fx:{w:-3,h:-3}}]});
+
+E.push({id:'beggar',min:10,max:70,w:3,repeat:3,t:'떠돌이',
+  x:s=>`해 질 무렵 떠돌이 하나가 대문 앞에서 한 술 얻어먹기를 청합니다.`,
+  c:[{l:'밥 한 그릇을 내어 준다',o:[{p:1,r:'밥을 말끔히 비우고 큰절을 하고 갔습니다. 마음이 따뜻해졌습니다.',fx:{o:3,b:3,w:-1}}]},
+     {l:'모른 척 문을 닫는다',o:[{p:1,r:'문을 닫고 나니 마음 한구석이 불편했습니다.',fx:{b:-2}}]}]});
+
+E.push({id:'thief',min:15,max:65,w:3,repeat:2,when:s=>s.stats.wealth>=30,t:'좀도둑',
+  x:s=>`밤중에 곳간 문이 삐걱거리는 소리가 들렸습니다.`,
+  c:[{l:'몽둥이를 들고 뛰쳐나간다',o:[
+      {p:.5,r:'도둑을 붙잡아 관아에 넘겼습니다. 이웃들이 칭찬했습니다.',fx:{o:3,b:2}},
+      {p:.5,r:'도둑을 놓치고 넘어져 다쳤습니다.',fx:{h:-4,c:-3}}]},
+     {l:'숨을 죽이고 지나가기를 기다린다',o:[{p:1,r:'아침에 보니 곡식 한 가마가 사라져 있었습니다.',fx:{w:-5,c:-6}}]}]});
+
+E.push({id:'apprentice',min:10,max:15,w:7,once:true,when:s=>male(s)&&['craft','trade','fish','own','ten'].includes(s.home),t:'일 배우기',
+  x:s=>`${N(s)}는 이제 제 몫을 할 나이가 되었습니다. 아버지는 아들이 어떤 길을 걸을지 고민합니다.`,
+  c:[{l:'아버지 곁에서 가업을 배운다',o:[{p:1,r:'어깨너머로 보던 일을 손에 익혔습니다.',fx:{w:6,h:1}}]},
+     {l:'다른 장인이나 상인 밑에 들어가 일을 배운다',o:[
+      {p:.7,r:'혹독한 도제 생활 끝에 쓸 만한 기술을 익혔습니다.',fx:{w:9,l:3,b:-2}},
+      {p:.3,r:'허드렛일만 하다 몇 해를 보냈습니다.',fx:{w:2,h:-3}}]}]});
+
+E.push({id:'inn',min:18,max:60,w:4,repeat:4,t:'주막',
+  x:s=>`먼 길을 가다 해가 저물어 고갯마루 주막에 들었습니다. 봉놋방에서 길손들이 이야기를 나눕니다.`,
+  c:[{l:'국밥과 막걸리를 시켜 먹으며 이야기를 듣는다',d:'엽전 3냥',when:s=>s.coin>=3,o:[{p:1,r:'다른 고을의 소문과 장사 이야기를 들었습니다.',fx:{l:2,b:3,c:-3,h:1}}]},
+     {l:'싸 온 주먹밥으로 요기하고 일찍 눕는다',o:[{p:1,r:'아침 일찍 길을 나설 수 있었습니다.',fx:{h:1}}]}]});
+
+E.push({id:'sibsplit',min:28,max:58,w:4,once:true,when:s=>s.status==='yangban'||s.status==='sangmin',t:'재산 분배',
+  x:s=>`부모님이 남기신 논밭을 형제들이 나눌 때가 되었습니다. 서로 조금이라도 더 가지려는 기색이 보입니다.`,
+  c:[{l:'기꺼이 양보한다',o:[{p:1,r:'양보하자 형제들이 부끄러워하며 마음을 고쳐먹었습니다. 집안의 화목이 이어졌습니다.',fx:{o:6,w:-6,b:6,c:-8}}]},
+     {l:'제 몫을 꼼꼼히 따진다',o:[
+      {p:.5,r:'제 몫을 지켜 냈습니다. 형제 사이가 서먹해졌습니다.',fx:{w:8,b:-7,c:12}},
+      {p:.5,r:'다툼이 길어져 관아까지 갔습니다. 체면만 구겼습니다.',fx:{w:2,b:-9,o:-4}}]}]});
+
+E.push({id:'widower',min:35,max:70,w:3,once:true,when:s=>male(s)&&s.married,t:'아내를 먼저 보내다',
+  x:s=>`${N(s)}의 아내가 병으로 먼저 세상을 떠났습니다. 집 안이 갑자기 휑해졌습니다.`,
+  c:[{l:'얼마 뒤 새 아내를 맞는다',o:[{p:1,r:'주변의 권유로 후처를 맞았습니다. 집안이 다시 돌아가기 시작했습니다.',fx:{b:2,w:-3}}]},
+     {l:'홀로 지낸다',o:[{p:1,r:'아내의 빈자리를 안고 홀로 지냈습니다. 자식들이 곁을 지켰습니다.',fx:{b:-5,h:-3,o:2}}]}]});
+
+E.push({id:'will',min:65,max:90,w:5,once:true,t:'유언',
+  x:s=>`${N(s)}는 자리에 누워 생각에 잠겼습니다. 남은 것을 누구에게 어떻게 남길지 정할 때입니다.`,
+  c:[{l:'논밭과 살림을 자식들에게 고루 나눈다',o:[{p:1,r:'자식들이 모여 고개를 끄덕였습니다. 마음이 놓였습니다.',fx:{b:6,o:3}}]},
+     {l:'서책과 글을 제자에게 남긴다',when:s=>s.stats.learn>=40,o:[{p:1,r:'평생 모은 책이 뜻을 이어 줄 이에게 건너갔습니다.',fx:{l:2,o:7,b:3}}]},
+     {l:'마을 사당이나 절에 시주한다',when:s=>s.coin>=20,d:'엽전 20냥',o:[{p:1,r:'시주한 이름이 고을에 오래 남았습니다.',fx:{o:6,b:3,c:-20}}]}]});
+
+/* 여성과 집안일 */
+E.push({id:'gyubang',min:14,max:50,w:5,repeat:3,when:s=>fem(s)&&hi(s),t:'규방의 하루',
+  x:s=>`집안일이 끝나면 ${N(s)}에게 짧은 시간이 남습니다.`,
+  c:[{l:'언문 소설을 필사한다',o:[{p:1,r:'이웃 부인들이 돌려 읽자고 빌려 갔습니다.',fx:{l:4,b:3}}]},
+     {l:'수를 놓는다',o:[{p:1,r:'수 놓은 병풍이 솜씨 좋다는 칭찬을 받았습니다.',fx:{w:2,o:3,c:3}}]}]});
+
+E.push({id:'samgye',min:16,max:55,w:5,repeat:3,when:s=>fem(s)&&!hi(s),t:'길쌈 두레',
+  x:s=>`동네 아낙들이 모여 밤마다 함께 길쌈을 하자고 합니다.`,
+  c:[{l:'두레에 들어 함께 짠다',o:[{p:1,r:'이야기를 나누며 베를 짜니 밤이 짧았습니다. 정도 들었습니다.',fx:{b:6,w:3,c:3}}]},
+     {l:'집에서 혼자 짠다',o:[{p:1,r:'혼자 짠 베를 장에 팔아 푼돈을 만들었습니다.',fx:{w:3,c:5,b:-1}}]}]});
+
+E.push({id:'hangul_letter',min:20,max:60,w:4,once:true,when:s=>fem(s)&&(s.flags.literate||s.status==='yangban'),t:'언문 편지',
+  x:s=>`멀리 시집간 벗에게서 언문으로 쓴 편지가 왔습니다.`,
+  o:[{p:1,r:'편지를 몇 번이고 읽고 답장을 썼습니다. 글로 이어지는 정이 있었습니다.',fx:{b:6,l:2}}]});
+
+E.push({id:'gwangdae',min:14,max:55,w:6,repeat:3,when:s=>s.home==='jaein',t:'잔치 공연',
+  x:s=>`고을 부잣집 잔치에서 줄타기와 소리를 해 달라는 청이 들어왔습니다.`,
+  c:[{l:'줄 위에 올라 재주를 부린다',o:[
+      {p:.75,r:'구경꾼들이 환호하며 엽전을 던졌습니다.',fx:{w:5,c:14,o:2}},
+      {p:.25,r:'줄에서 미끄러져 다쳤습니다.',fx:{h:-10,c:4}}]},
+     {l:'소리판을 벌인다',o:[{p:1,r:'구성진 소리에 좌중이 숙연해졌습니다.',fx:{c:8,b:3,o:2}}]}]});
+
+/* 연도별 사건 추가: 공노비 해방 */
+H.push(
+ {id:'gongnobi',from:1801,to:1801,min:7,when:s=>s.status==='cheonmin'&&s.home==='gong',t:'공노비 해방',
+  x:s=>`순조 원년, 궁궐과 관아에 매여 있던 노비를 풀어 주라는 명이 내렸다는 방이 관아에 붙었습니다.`,
+  o:[{p:1,r:s=>`${N(s)}의 이름이 노비 문서에서 지워졌습니다. 이제 양인으로 살아갑니다.`,st:'sangmin',fx:{o:12,b:4},set:{gongFree:1}}]}
+);
+/* ---------- 상태 ---------- */
+let S=null, eraKey='any', playing=true, speed=1, timer=null, waiting=false, ended=false;
+const KEY='joseon-memorial-v1', FXK={h:'health',l:'learn',w:'wealth',o:'honor',b:'bond'};
+const LAB={health:'건강',learn:'학식',wealth:'재물',honor:'명예',bond:'인연'};
+const BADGE={munkwa:'문과 급제',saenwon:'생원·진사',jap:'잡과 합격',arts:'기예를 익힘',hidden:'신분을 감춤',exile:'유배',teacher:'훈장·선생',literate:'글을 깨침',fugitive:'도망'};
+const PAUSE={
+  5:s=>`${N(s)}는 아직 자기가 어떤 신분으로 태어났는지 모릅니다. 당신이 다섯 살 때 가장 먼저 떠오르는 장면은 무엇인가요?`,
+  15:s=>`열다섯. 이 시대에는 혼인 이야기가 오갈 나이입니다. 당신의 열다섯은 어땠나요?`,
+  30:s=>`서른. 지금까지 ${N(s)}의 삶을 갈라 놓은 것은 노력일까요, 태어난 집안일까요?`,
+  50:s=>`쉰. ${N(s)}가 지금까지 얻은 것과 잃은 것을 떠올려 봅니다.`,
+  70:s=>`일흔. 예로부터 드문 나이입니다. ${josa(N(s),'에게','에게')} 한마디를 건넨다면?`
+};
+
+/* ---------- 화면 ---------- */
+const VIEWS=['home','birth','life','end','mem','ach','about'];
+function show(v){
+  VIEWS.forEach(x=>{$('#s-'+x).hidden=x!==v});
+  const tab=v==='birth'?'home':v==='end'?'life':v;
+  $$('.tab').forEach(b=>b.setAttribute('aria-current',b.dataset.go===tab?'page':'false'));
+  window.scrollTo(0,0);
+}
+function go(v){
+  if(v==='life'){ if(!S){show('home');return;} show(ended?'end':'life'); return; }
+  if(v==='mem') renderMem();
+  if(v==='ach') renderAch();
+  show(v);
+}
+$$('.tab').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
+$('#brand').addEventListener('click',()=>go('home'));
+$('#themeBtn').addEventListener('click',()=>{
+  const r=document.documentElement, cur=r.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  const nx=cur==='dark'?'light':'dark'; r.dataset.theme=nx; try{localStorage.setItem('joseon-theme',nx)}catch(e){}
+});
+try{const t=localStorage.getItem('joseon-theme'); if(t) document.documentElement.dataset.theme=t;}catch(e){}
+
+/* ---------- 홈 ---------- */
+function renderDist(){
+  const d=distEra(eraKey), el=$('#dist'), key=$('#distKey'); el.textContent=''; key.textContent='';
+  const parts=[];
+  for(const k of ['yangban','jungin','sangmin','cheonmin']){
+    const sp=document.createElement('span'); sp.style.width=(d[k]*100)+'%'; sp.style.background=ST[k].c; sp.title=ST[k].k; el.appendChild(sp);
+    const pct=Math.round(d[k]*100); parts.push(`${ST[k].k} ${pct}%`);
+    const i=document.createElement('span'); i.innerHTML='<i></i>'; i.firstChild.style.background=ST[k].c; i.append(`${ST[k].k} ${pct}%`); key.appendChild(i);
+  }
+  el.setAttribute('aria-label',parts.join(', '));
+}
+$$('#eraSeg button').forEach(b=>b.addEventListener('click',()=>{
+  eraKey=b.dataset.era; $$('#eraSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderDist();
+}));
+function homeNote(){ const n=loadMem().length; $('#homeNote').textContent=n?`추모관에 ${n}명이 모셔져 있습니다.`:''; }
+
+/* ---------- 태어남 ---------- */
+function startBirth(){
+  clearTimeout(timer); ended=false; waiting=false; closeShop();
+  S=genLife(eraKey,$('#skipKid').checked);
+  show('birth'); $('#btnLive').disabled=true;
+  const inp=$('#nameIn'); inp.value=''; inp.disabled=true; inp.placeholder='…'; $('#btnSuggest').disabled=true;
+  const f=[
+    ['#b-era',`${S.birthYear}년, ${yearText(S.birthYear)}`],
+    ['#b-place',`${S.region} ${S.town}`],
+    ['#b-status',`${ST[S.status].k} · ${S.homeName}`],
+    ['#b-home',S.homeText],
+    ['#b-sex',S.sex==='m'?'사내아이':'여자아이']
+  ];
+  f.forEach(([sel])=>{const e=$(sel); e.textContent='…'; e.className='spin';});
+  f.forEach(([sel,val],i)=>setTimeout(()=>{
+    const e=$(sel); e.textContent=val; e.className=sel==='#b-status'?'pick':'';
+    if(i===f.length-1){ inp.disabled=false; inp.placeholder=S.suggest; $('#btnSuggest').disabled=false; $('#btnLive').disabled=false; try{inp.focus({preventScroll:true})}catch(e){} }
+  },500+i*650));
+}
+$('#btnStart').addEventListener('click',startBirth);
+$('#btnLive').addEventListener('click',beginLife);
+
+/* ---------- 이번 생 ---------- */
+function buildStats(el){
+  el.textContent='';
+  STATS.forEach(([k,n,c])=>{
+    const r=document.createElement('div'); r.className='stat';
+    r.innerHTML=`<span>${n}</span><div class="bar"><i style="--c:${c}"></i></div><b></b>`; r.dataset.k=k; el.appendChild(r);
+  });
+}
+function paintStats(el,s){
+  $$('.stat',el).forEach(r=>{const v=Math.round(clamp(s.stats[r.dataset.k])); $('i',r).style.width=v+'%'; $('b',r).textContent=v;});
+}
+function job(s){
+  if(s.status==='yangban'){ if(s.office) return OFFICES[s.office]; if(s.flags.saenwon) return '생원·진사'; if(s.flags.teacher) return '훈장'; return s.age<16?'도령':'유학(幼學)'; }
+  if(s.status==='jungin'){ if(s.flags.jap) return '잡과 출신 관원'; return s.homeName; }
+  if(s.status==='sangmin'){ if(s.flags.fugitive) return '화전민'; return s.homeName.replace(' 집',''); }
+  return s.homeName.replace(' 집','');
+}
+function paintPlate(){
+  const s=S; $('#l-stamp').textContent=ST[s.status].k; $('#l-name').textContent=s.name;
+  $('#l-meta').textContent=`${ageText(s.age)} · ${job(s)} · ${s.region} ${s.town}`;
+  $('#l-year').textContent=yearText(s.year);
+  $('#l-coin').textContent=`엽전 ${Math.floor(s.coin||0)}냥`; trackPeak(s);
+  paintStats($('#stats'),s);
+}
+function beginLife(){
+  applyName(); closeShop();
+  const s=S; $('#ledger').textContent=''; $('#decide').textContent=''; buildStats($('#stats'));
+  playing=true; $('#btnPlay').textContent='일시정지'; show('life'); paintPlate();
+  const first=s.skip?`일곱 살이 되었습니다. 어린 시절은 기억 저편으로 흘러갔습니다. ${s.name}의 집은 ${s.homeName}입니다.`:`${s.region} ${s.town}에서 태어났습니다. ${s.homeName}의 아이입니다.`;
+  addLog({tag:'출생',parts:[first]});
+  schedule();
+}
+function schedule(){ clearTimeout(timer); if(!playing||waiting||ended||shopOpen) return; timer=setTimeout(step,1600/speed); }
+$('#btnPlay').addEventListener('click',()=>{
+  playing=!playing; $('#btnPlay').textContent=playing?'일시정지':'다시 흐르게'; if(playing) schedule(); else clearTimeout(timer);
+});
+$('#btnNext').addEventListener('click',()=>{ if(!waiting&&!ended){clearTimeout(timer);step();} });
+$$('#speedSeg button').forEach(b=>b.addEventListener('click',()=>{
+  speed=+b.dataset.sp; $$('#speedSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b)); schedule();
+}));
+
+function addLog({tag,cls='',parts=[],fx=''}){
+  const s=S, li=document.createElement('li'); li.className=cls+' new';
+  const a=document.createElement('div'); a.className='a'; a.textContent=ageText(s.age);
+  const t=document.createElement('div'); t.className='t';
+  const tg=document.createElement('span'); tg.className='tag'; tg.textContent=tag; t.appendChild(tg);
+  parts.forEach((p,i)=>{ const e=document.createElement(i?'p':'span'); e.textContent=fixP(p); if(i) e.style.marginTop='4px'; t.appendChild(e); });
+  if(fx){const f=document.createElement('span'); f.className='fx'; f.textContent=fx; t.appendChild(f);}
+  li.append(a,t); $('#ledger').prepend(li);
+}
+
+/* ---------- 한 해 ---------- */
+function drift(s){
+  const a=s.age, st=s.stats;
+  if(a<15) st.health+=rnd(-.5,1.4); else if(a>40) st.health-=rnd(.3,1.1)+(a-40)/45;
+  if(s.status==='cheonmin') st.health-=.4;
+  if(st.wealth<10&&a>12) st.health-=.6;
+  const d={cheonmin:[-1,1.5],sangmin:[-2,2.2],yangban:[-2.5,2],jungin:[-1.5,2.2]}[s.status];
+  st.wealth+=rnd(d[0],d[1])+(s.office?s.office*.7:0);
+  if(s.sex==='m'&&s.status==='yangban'&&a>=8&&a<=30) st.learn+=rnd(0,1.6);
+  if(s.flags.literate&&a>12) st.learn+=.3;
+  st.bond+=s.married?.4:-.1;
+  s.coin=Math.max(0,(s.coin||0)+income(s)-s.children*(s.age<60?.5:.2)); s.peakCoin=Math.max(s.peakCoin||0,s.coin);
+  for(const k in st) st[k]=clamp(st[k]);
+}
+function elig(s){
+  return E.filter(e=>s.age>=e.min&&s.age<=e.max&&(s.used[e.id]||0)<(e.repeat||1)&&(!e.when||e.when(s)));
+}
+function step(){
+  const s=S; s.age++; s.year++; drift(s);
+  const q=[];
+  if(PAUSE[s.age]&&s.age>(s.skip?7:0)) q.push({k:'pause'});
+  H.forEach(h=>{ if(s.year>=h.from&&s.year<=h.to&&s.age>=h.min&&!s.used[h.id]&&(!h.when||h.when(s))){ s.used[h.id]=1; q.push({k:'ev',e:h,hist:1}); } });
+  let el=elig(s).filter(e=>!q.some(z=>z.e&&z.e.id===e.id));
+  const forced=el.filter(e=>e.w>=900);
+  if(forced.length) q.push({k:'ev',e:forced[0]});
+  el=el.filter(e=>e.w<900);
+  let n=wpick(s.age<8?[[0,3],[1,5],[2,2]]:s.age<15?[[1,4],[2,4],[3,2]]:[[1,3],[2,4],[3,3],[4,1]]);
+  let dec=q.filter(z=>z.e&&z.e.c).length+(forced.length&&forced[0].c?1:0);
+  while(n>0&&el.length){
+    const e=wpick(el.map(x=>[x,x.w||1])); el=el.filter(x=>x!==e);
+    if(e.c){ if(dec>=2) continue; dec++; }
+    q.push({k:'ev',e}); n--;
+  }
+  if(s.married&&s.age>=17&&s.age<=42&&s.children<7&&Math.random()<.26&&!s.flags.widowed) q.push({k:'kid'});
+  paintPlate(); run(q);
+}
+function run(q){
+  if(ended) return;
+  const it=q.shift();
+  if(!it){ return finishYear(); }
+  const next=()=>run(q);
+  if(it.k==='pause') return pauseCard(next);
+  if(it.k==='kid') return kid(next);
+  const e=it.e; S.used[e.id]=(S.used[e.id]||0)+1;
+  if(e.c){
+    const cs=e.c.filter(c=>!c.when||c.when(S));
+    if(!cs.length) return next();
+    return decideCard(e,cs,it.hist,next);
+  }
+  const o=resolve(e.o); applyOutcome(e,o,'',it.hist,next);
+}
+function pv(o){return typeof o.p==='function'?o.p(S):o.p;}
+function resolve(os){ const w=os.map(o=>[o,Math.max(0,pv(o))]); return w.every(x=>x[1]===0)?os[0]:wpick(w); }
+function fxText(fx){
+  return Object.entries(fx).filter(([,v])=>v).map(([k,v])=>`${k==='coin'?'엽전':LAB[k]} ${v>0?'+':'−'}${Math.abs(Math.round(v))}${k==='coin'?'냥':''}`).join(' · ');
+}
+function applyOutcome(e,o,pickLabel,hist,next){
+  const s=S, fx={}, c0=s.coin||0;
+  const txt=v=>typeof v==='function'?v(s):v;
+  if(o.fx) for(const k in o.fx){ const v=txt(o.fx[k]); if(!v) continue; if(k==='c'){ s.coin=Math.max(0,(s.coin||0)+v); fx.coin=v; continue; }
+    fx[FXK[k]]=v; s.stats[FXK[k]]=clamp(s.stats[FXK[k]]+v); if(k==='w') s.coin=Math.max(0,(s.coin||0)+v*1.2); }
+  if(o.child) s.children=Math.max(0,s.children+o.child);
+  if(o.set) for(const k in o.set){ s.flags[k]=o.set[k]; if(o.set[k]) s.badge=(s.badge||{}),s.badge[k]=1; }
+  if(o.mar) s.married=true;
+  let extra='';
+  if(o.off){ const n=clamp(s.office+o.off,0,7); if(n!==s.office){ s.office=n; extra=n?` · 관직: ${OFFICES[n]}`:' · 관직을 잃음'; } }
+  const parts=[txt(e.x)];
+  if(pickLabel) parts.push(`「${pickLabel}」`+(o.r?' '+txt(o.r):''));
+  else if(o.r) parts.push(txt(o.r));
+  if(o.die){ s.deathCause=txt(o.die); paintPlate(); addLog({tag:e.t,cls:hist?'hist':'bad',parts:[txt(e.x),pickLabel?`「${pickLabel}」`:''].filter(Boolean),fx:fxText(fx)}); return endLife(s.deathCause); }
+  addLog({tag:e.t,cls:hist?'hist':'',parts,fx:fxText(fx)+extra});
+  const ns=o.st?txt(o.st):null;
+  if(ns&&ns!==s.status){ const from=s.status; s.status=ns; s.path.push(ns); s.office=ns==='yangban'||ns==='jungin'?s.office:0;
+    addLog({tag:'신분',cls:'status',parts:[`${ST[from].k}에서 ${ST[ns].k}으로 신분이 바뀌었습니다.`]}); }
+  paintPlate(); next();
+}
+function decideCard(e,cs,hist,done){
+  waiting=true; clearTimeout(timer);
+  const box=$('#decide'); box.textContent='';
+  const d=document.createElement('div'); d.className='decide';
+  d.innerHTML='<h3></h3><p class="q"></p><div class="opts"></div>';
+  $('h3',d).textContent=(hist?'시대의 사건 · ':'')+e.t; $('.q',d).textContent=fixP(typeof e.x==='function'?e.x(S):e.x);
+  cs.forEach(c=>{
+    const b=document.createElement('button'); b.type='button'; b.className='opt'; b.textContent=c.l;
+    const ds=typeof c.d==='function'?c.d(S):c.d; if(ds){const sm=document.createElement('small'); sm.textContent=ds; b.appendChild(sm);}
+    b.addEventListener('click',()=>{ box.textContent=''; waiting=false; const o=resolve(c.o); applyOutcome(e,o,c.l,hist,done); });
+    $('.opts',d).appendChild(b);
+  });
+  box.appendChild(d); d.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+function pauseCard(done){
+  waiting=true; clearTimeout(timer);
+  const box=$('#decide'); box.textContent='';
+  const d=document.createElement('div'); d.className='decide pause';
+  d.innerHTML='<h3></h3><p class="q"></p><label class="ui mute" style="font-size:13px" for="pnote">한 줄 남기기 (선택)</label><textarea id="pnote" maxlength="200"></textarea><button class="btn" type="button">계속</button>';
+  $('h3',d).textContent=`잠시 멈춤 · ${S.age}세`; $('.q',d).textContent=fixP(PAUSE[S.age](S));
+  $('button',d).addEventListener('click',()=>{ const v=$('#pnote',d).value.trim(); if(v) S.notes.push({age:S.age,text:v}); box.textContent=''; waiting=false; done(); });
+  box.appendChild(d);
+}
+function kid(next){
+  const s=S; s.children++;
+  if(s.sex==='f'&&Math.random()<.022){ s.deathCause='산후병(해산 뒤 병)'; addLog({tag:'해산',cls:'bad',parts:[`${N(s)}는 아이를 낳았으나 산후병을 얻었습니다.`]}); return endLife(s.deathCause); }
+  const boy=Math.random()<.5;
+  addLog({tag:'가족',parts:[`${boy?'아들':'딸'}이 태어났습니다.${s.stats.wealth<25?' 입이 하나 늘어 살림이 빠듯해졌습니다.':' 집안이 웃음으로 가득합니다.'}`],fx:`인연 +4${s.stats.wealth<25?' · 재물 −3':''}`});
+  s.stats.bond=clamp(s.stats.bond+4); if(s.stats.wealth<25) s.stats.wealth=clamp(s.stats.wealth-3);
+  paintPlate(); next();
+}
+
+/* ---------- 죽음 ---------- */
+function baseQ(a){
+  if(a<1) return .08; if(a<5) return .024; if(a<10) return .01; if(a<20) return .006; if(a<30) return .009;
+  if(a<40) return .013; if(a<50) return .02; if(a<60) return .035; if(a<70) return .065; if(a<80) return .12; return .22;
+}
+function finishYear(){
+  const s=S; paintPlate(); checkAch(s);
+  let m=1; CRISIS.forEach(([a,b,x])=>{ if(s.year>=a&&s.year<=b) m=Math.max(m,x); });
+  const hm=clamp(2-s.stats.health/50,.35,2.2);
+  const q=baseQ(s.age)*ST[s.status].mort*hm*m*(s.items.medbox?.85:1)*.88;
+  if(Math.random()<q||s.age>=100) return endLife(pickCause(s,m>1));
+  schedule();
+}
+function pickCause(s,crisis){
+  const a=s.age;
+  if(crisis&&a>=5&&Math.random()<.5) return '굶주림과 역병';
+  if(s.flags.exile&&Math.random()<.5) return '유배지에서 얻은 병';
+  if(a<5) return pick(['마마(천연두)','홍역','열병','영양실조로 얻은 병']);
+  if(a<15) return pick(['홍역','열병','학질']);
+  if(a<45) return pick(['열병','학질','폐병','역병','종기']);
+  if(a<65) return pick(['중풍','폐병','역병','화병','학질']);
+  return pick(['노환','중풍','기력이 쇠하여']);
+}
+/* ---------- 마무리, 추모관 ---------- */
+function lifeScore(s){
+  const avg=(s.stats.health+s.stats.learn+s.stats.wealth+s.stats.honor+s.stats.bond)/5;
+  const mv=ST[s.status].r-ST[s.startStatus].r;
+  return Math.max(1,Math.round(s.age*.7+avg*.8+mv*10+s.office*3+s.children*1.5+Math.min(10,Math.floor((s.coin||0)/40))+(s.newAch?s.newAch.length*2:0)));
+}
+function epithet(s){
+  const mv=ST[s.status].r-ST[s.startStatus].r;
+  if(s.age<12) return '일찍 저문 아이';
+  if(mv>0) return '신분의 벽을 넘은 사람';
+  if(mv<0) return '기울어 간 집안의 사람';
+  if(s.office>=5) return '조정에 이름을 올린 사람';
+  const top=Object.entries(s.stats).sort((a,b)=>b[1]-a[1])[0][0];
+  return {learn:'글을 놓지 않은 사람',wealth:'곳간을 지킨 사람',honor:'이름을 남긴 사람',bond:'곁에 사람이 많던 사람',health:'끝까지 버틴 사람'}[top];
+}
+function epiLines(s){
+  const L=[];
+  const p=s.path.map(k=>ST[k].k);
+  L.push(p.length>1?`${p.join(', ')}의 길을 걸었다.`:`태어난 신분 그대로 ${p[0]}으로 살다 갔다.`);
+  const top=Object.entries(s.stats).sort((a,b)=>b[1]-a[1])[0];
+  const sayings={learn:'글을 아끼던 사람이었다.',wealth:'곳간이 비지 않았다.',honor:'고을에서 이름을 얻었다.',bond:'곁에 늘 사람이 있었다.',health:'몸이 튼튼하기로 소문났다.'};
+  if(top[1]>=55) L.push(sayings[top[0]]);
+  else L.push('크게 이룬 것은 없으나 하루하루를 살아 냈다.');
+  L.push(s.children?`자식 ${s.children}을 두었다.`:'자식을 두지 못했다.');
+  return L.join(' ');
+}
+function loadMem(){ try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return []} }
+function saveMem(a){ try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){} }
+function endLife(cause){
+  const s=S; clearTimeout(timer); ended=true; waiting=false; s.alive=false; closeShop(); $('#decide').textContent='';
+  s.deathCause=cause; checkAch(s,true); s.score=lifeScore(s);
+  addLog({tag:'별세',cls:'bad',parts:[`${ageText(s.age)}의 나이로 세상을 떠났습니다. 사인은 ${cause}.`]});
+  const ep=epithet(s), lines=epiLines(s);
+  s.epithet=ep; s.lines=lines;
+  const mem=loadMem(); mem.push({name:s.name,born:s.birthYear,age:s.age,start:s.startStatus,end:s.status,score:s.score,ep,cause,lines,ts:Date.now()});
+  saveMem(mem.slice(-60));
+  $('#e-stamp').textContent=ST[s.status].k;
+  $('#e-kicker').textContent=`${s.name} · ${yearText(s.birthYear)} 태어남 · ${ageText(s.age)}에 별세`;
+  $('#e-title').textContent=ep;
+  $('#e-lines').textContent=`${lines} 사인은 ${cause}.`;
+  const path=$('#e-path'); path.textContent='';
+  s.path.forEach((k,i)=>{ if(i){const a=document.createElement('b'); a.textContent='→'; a.style.fontWeight=400; path.appendChild(a);} const e=document.createElement('span'); e.textContent=ST[k].k; path.appendChild(e); });
+  Object.keys(s.badge||{}).forEach(k=>{ if(BADGE[k]){const e=document.createElement('span'); e.textContent=BADGE[k]; e.style.color='var(--mute)'; path.appendChild(e);} });
+  if(s.office){const e=document.createElement('span'); e.textContent=OFFICES[s.office]; path.appendChild(e);}
+  $('#e-score').innerHTML=`<div><b>${s.score}</b>이번 생의 점수</div><div><b>${s.age}</b>향년</div><div><b>${s.children}</b>자녀</div>`;
+  buildStats($('#e-stats')); paintStats($('#e-stats'),s);
+  const nb=$('#e-notes'); nb.textContent='';
+  if(s.notes.length){ const h=document.createElement('h3'); h.textContent='남긴 한 줄'; h.style.cssText='font-size:20px;margin:22px 0 6px';
+    nb.appendChild(h); s.notes.forEach(n=>{const p=document.createElement('p'); p.className='ui'; p.style.cssText='font-size:14px;color:var(--mute)'; p.textContent=`${n.age}세 · ${n.text}`; nb.appendChild(p);}); }
+  renderEndAch(nb,s);
+  const det=document.createElement('details'); det.style.marginTop='20px';
+  const sm=document.createElement('summary'); sm.textContent='일생의 기록 펼치기'; sm.className='ui'; sm.style.cssText='cursor:pointer;font-size:14px';
+  const ol=document.createElement('ol'); ol.className='ledger'; ol.innerHTML=$('#ledger').innerHTML; $$('li',ol).forEach(l=>l.classList.remove('new'));
+  det.append(sm,ol); nb.appendChild(det);
+  $('#copyMsg').textContent='';
+  setTimeout(()=>{ if(ended) show('end'); },900);
+}
+$('#btnAgain').addEventListener('click',()=>{ S=null; go('home'); });
+$('#btnToMem').addEventListener('click',()=>go('mem'));
+$('#btnCopy').addEventListener('click',()=>{
+  const s=S; if(!s) return;
+  const t=`[조선 한 평생] ${s.name}\n${yearText(s.birthYear)} ${s.region} ${s.town}, ${ST[s.startStatus].k}으로 태어나 ${ST[s.status].k}으로 ${s.age}세에 별세 (${s.deathCause})\n「${s.epithet}」 · 점수 ${s.score}\n건강 ${Math.round(s.stats.health)} 학식 ${Math.round(s.stats.learn)} 재물 ${Math.round(s.stats.wealth)} 명예 ${Math.round(s.stats.honor)} 인연 ${Math.round(s.stats.bond)}`;
+  const msg=$('#copyMsg');
+  const fallback=()=>{ msg.textContent=t; const r=document.createRange(); r.selectNodeContents(msg); const g=getSelection(); g.removeAllRanges(); g.addRange(r); };
+  try{ navigator.clipboard.writeText(t).then(()=>{msg.textContent='복사했습니다.'},fallback); }catch(e){ fallback(); }
+});
+
+function renderMem(){
+  const el=$('#mlist'); el.textContent=''; $('#clearMsg').textContent=''; $('#btnClear').textContent='기록 모두 지우기';
+  const m=loadMem().sort((a,b)=>b.score-a.score);
+  if(!m.length){ const li=document.createElement('li'); li.style.cssText='border-top:1px solid var(--line);padding:18px 0;display:block'; li.className='mute ui';
+    li.textContent='아직 모셔진 사람이 없습니다. 한 생을 끝까지 살면 이곳에 이름이 남습니다.'; el.appendChild(li); return; }
+  m.forEach(r=>{
+    const li=document.createElement('li');
+    const nm=document.createElement('div'); nm.className='nm'; nm.textContent=r.name;
+    const sc=document.createElement('div'); sc.className='sc'; sc.textContent=r.score;
+    const sub=document.createElement('div'); sub.className='sub'; sub.textContent=`${r.born}년생 · ${ST[r.start].k}${r.start!==r.end?' → '+ST[r.end].k:''} · ${r.age}세 · ${r.cause}`;
+    const ep=document.createElement('div'); ep.className='ep'; ep.textContent=`${r.ep}. ${r.lines||''}`;
+    li.append(nm,sc,sub,ep); el.appendChild(li);
+  });
+}
+let clearArmed=false;
+$('#btnClear').addEventListener('click',()=>{
+  if(!clearArmed){ clearArmed=true; $('#btnClear').textContent='한 번 더 누르면 모두 지워집니다'; setTimeout(()=>{clearArmed=false; const b=$('#btnClear'); if(b) b.textContent='기록 모두 지우기';},4000); return; }
+  clearArmed=false; saveMem([]); renderMem(); $('#clearMsg').textContent='지웠습니다.'; homeNote();
+});
+
+/* ---------- 시작 ---------- */
+
+/* ---------- 이름 만들기 (추천용) ---------- */
+function makeName(status,sex,home){
+  let nm,short,hon='';
+  if(status==='yangban'){ const [bon,sur]=pick(YB_SUR); short=sex==='m'?pick(M_YB):pick(F_YB);
+    nm=sex==='m'?sur+short:`${sur}씨 가문의 ${short}`; hon=`${bon} ${sur}씨`; }
+  else if(status==='jungin'){ const sur=pick(SUR_C); short=sex==='m'?pick(M_JI):pick(F_JI); nm=sex==='m'?sur+short:`${sur}씨 집 ${short}`; }
+  else if(status==='sangmin'){ const sur=pick(SUR_C); short=sex==='m'?pick(M_SA):pick(F_SA); nm=sur+short; }
+  else { short=sex==='m'?pick(M_CH):pick(F_CH); nm=short; }
+  return {nm,short,hon};
+}
+function applyName(){
+  const v=$('#nameIn').value.trim().replace(/\s+/g,' ').slice(0,8);
+  if(v){ S.name=v; S.short=v; S.userName=true; } else { S.name=S.suggest; S.short=S.suggestShort; }
+}
+$('#btnSuggest').addEventListener('click',()=>{
+  if(!S) return; const n=makeName(S.status,S.sex,S.home); S.suggest=n.nm; S.suggestShort=n.short;
+  $('#nameIn').value=''; $('#nameIn').placeholder=n.nm;
+});
+$('#nameIn').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!$('#btnLive').disabled){ e.preventDefault(); beginLife(); } });
+
+/* ---------- 이름 뒤 조사 교정 ---------- */
+const PMAP={'은':0,'는':1,'이':0,'가':1,'을':0,'를':1,'과':0,'와':1};
+const PSET={'은':'은|는','는':'은|는','이':'이|가','가':'이|가','을':'을|를','를':'을|를','과':'과|와','와':'과|와'};
+function fixP(t){
+  const s=S; if(!s||!s.short||!t) return t;
+  const n=s.short, esc=n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return t.replace(new RegExp(esc+'(은|는|이|가|을|를|과|와)(?![가-힣])','g'),(m,p)=>{
+    const pair=PSET[p].split('|'); return n+pair[jong(n)?0:1];
+  });
+}
+
+/* ---------- 엽전과 장터 ---------- */
+let shopOpen=false;
+const ITEMS=[
+ {id:'herb',name:'보약 한 첩',price:6,max:6,desc:'기력을 북돋는 탕약입니다.',fx:{h:9},msg:'약방에서 보약을 지어 달여 먹었습니다.'},
+ {id:'rice',name:'쌀 한 가마',price:8,max:10,desc:'곳간이 든든해지고 식구 얼굴이 펴집니다.',fx:{h:3,b:3},msg:'쌀 한 가마를 들여 식구들과 배불리 먹었습니다.'},
+ {id:'cloth',name:'새 옷 한 벌',price:5,max:6,desc:'명절과 나들이에 입을 옷입니다.',fx:{o:2,b:2},msg:'새 옷을 지어 입었습니다.'},
+ {id:'brush',name:'지필묵',price:4,max:1,desc:'종이와 붓, 먹입니다. 글을 읽고 쓸 줄 알아야 쓸모가 있습니다.',fx:{l:4},when:s=>s.age>=7&&(s.flags.literate||hi(s)||s.stats.learn>=15),msg:'지필묵을 장만해 글을 쓰기 시작했습니다.'},
+ {id:'book',name:'서책 한 질',price:10,max:5,desc:'경전과 문집입니다. 글을 모르면 효과가 적습니다.',fx:{l:9},when:s=>s.age>=7,msg:'서책을 구해 밤마다 읽었습니다.'},
+ {id:'gat',name:'갓과 도포',price:14,max:1,desc:'양반과 선비의 체면을 갖춥니다.',fx:{o:6},when:s=>male(s)&&s.age>=16&&(s.status==='yangban'||s.status==='jungin'),msg:'갓과 도포를 갖추고 나서니 사람들 대하는 눈길이 달라졌습니다.'},
+ {id:'binyeo',name:'비녀와 가락지',price:12,max:1,desc:'혼인한 여인의 단정한 장신구입니다.',fx:{o:3,b:3},when:s=>fem(s)&&s.age>=15,msg:'비녀와 가락지를 장만했습니다.'},
+ {id:'plow',name:'쟁기와 농기구',price:12,max:1,desc:'해마다 농사에서 조금씩 더 거둡니다.',fx:{w:3},income:2,when:s=>s.age>=14&&s.home!=='gate',msg:'새 쟁기와 농기구를 마련했습니다.'},
+ {id:'loom',name:'베틀',price:14,max:1,desc:'길쌈으로 해마다 벌이가 생깁니다.',fx:{w:3},income:3,when:s=>fem(s)&&s.age>=14,msg:'베틀을 들여놓고 길쌈을 시작했습니다.'},
+ {id:'tools',name:'장사 밑천',price:20,max:1,desc:'물건 한 짐을 사 두고 장터를 돕니다.',fx:{w:3,b:2},income:5,when:s=>s.age>=16&&(s.home==='trade'||s.status==='sangmin'||s.status==='jungin'),msg:'물건을 한 짐 사서 장터를 돌 채비를 했습니다.'},
+ {id:'cow',name:'농우 한 마리',price:30,max:1,desc:'일손이 크게 늡니다. 해마다 소출이 늘어납니다.',fx:{w:5,h:1},income:5,when:s=>s.age>=14,msg:'송아지 한 마리를 들여 농우로 길렀습니다.'},
+ {id:'field',name:'밭 한 뙈기',price:35,max:3,desc:'내 땅에서 해마다 소출이 납니다.',fx:{w:6},income:4,when:s=>s.age>=16,msg:'밭 한 뙈기를 사 들였습니다.'},
+ {id:'paddy',name:'논 열 마지기',price:70,max:3,desc:'큰 논입니다. 가을마다 쌀이 쌓입니다.',fx:{w:10,o:3},income:9,when:s=>s.age>=18&&s.status!=='cheonmin',msg:'논을 사 들이고 문서에 이름을 올렸습니다.'},
+ {id:'medbox',name:'약장',price:18,max:1,desc:'상비약을 갖춰 두면 병에 덜 시달립니다.',fx:{h:3},when:s=>s.age>=18,msg:'약장을 들여놓고 약재를 채웠습니다.'},
+ {id:'horse',name:'말과 안장',price:45,max:1,desc:'먼 길과 체면에 쓰입니다.',fx:{o:6,b:2},when:s=>s.age>=18&&(s.status==='yangban'||s.status==='jungin'),msg:'말과 안장을 마련해 먼 길도 오가게 되었습니다.'},
+ {id:'ancestor',name:'조상 묘 단장',price:30,max:1,desc:'산소를 번듯하게 꾸밉니다.',fx:{o:6,b:2},when:s=>s.age>=25&&s.status!=='cheonmin',msg:'조상의 묘를 번듯하게 단장했습니다.'},
+ {id:'feast',name:'마을 잔치',price:15,max:4,desc:'이웃을 불러 음식을 나눕니다.',fx:{b:10,o:3},when:s=>s.age>=18,msg:'마을 사람들을 불러 잔치를 열었습니다.'},
+ {id:'school',name:'서당 후원',price:20,max:3,desc:'고을 아이들의 글공부를 돕습니다.',fx:{o:5,l:3,b:3},when:s=>s.age>=25&&s.status!=='cheonmin',msg:'서당에 곡식과 돈을 보탰습니다.'},
+ {id:'bridge',name:'우물과 다리 시주',price:25,max:3,desc:'고을 사람들이 오래 기억합니다.',fx:{o:9,b:4},when:s=>s.age>=30&&s.status!=='cheonmin',msg:'마을 우물과 다리를 고치는 데 돈을 내었습니다.'},
+ {id:'house',name:'기와집',price:120,max:1,desc:'비가 새지 않고 격이 있는 집입니다.',fx:{h:4,o:10,b:5,w:8},when:s=>s.age>=22&&s.status!=='cheonmin',msg:'마침내 기와집을 짓고 상량식을 열었습니다.'}
+];
+function itemIncome(s){ let v=0; ITEMS.forEach(it=>{ const n=s.items[it.id]||0; if(n&&it.income) v+=n*it.income; }); return v; }
+function income(s){
+  const a=s.age; if(a<10) return 0;
+  const base={cheonmin:.7,sangmin:2.2,jungin:3.6,yangban:3}[s.status];
+  let v=base+s.stats.wealth/14+s.office*2.5+itemIncome(s);
+  if(a<15) v*=.4; if(a>65) v*=.6;
+  return v*rnd(.7,1.3);
+}
+function buyItem(id){
+  const it=ITEMS.find(x=>x.id===id), s=S; if(!it||!s||ended) return;
+  const have=s.items[id]||0;
+  if(have>=(it.max||1)||s.coin<it.price||(it.when&&!it.when(s))) return;
+  s.coin-=it.price; s.items[id]=have+1; s.bought++;
+  const fx={}, f=it.fx||{};
+  for(const k in f){ let v=f[k];
+    if(id==='book'&&k==='l'&&!(s.flags.literate||hi(s)||s.stats.learn>=20)) v=Math.round(v*.4);
+    fx[FXK[k]]=v; s.stats[FXK[k]]=clamp(s.stats[FXK[k]]+v); }
+  addLog({tag:'장터',parts:[it.msg||`${it.name}을 샀습니다.`],fx:[fxText(fx),`엽전 −${it.price}냥`].filter(Boolean).join(' · ')});
+  paintPlate(); renderShop(); checkAch(s);
+}
+function renderShop(){
+  const s=S; if(!s) return;
+  $('#shopCoin').textContent=`엽전 ${Math.floor(s.coin)}냥`;
+  const list=$('#shopList'); list.textContent='';
+  ITEMS.filter(it=>!it.when||it.when(s)).forEach(it=>{
+    const have=s.items[it.id]||0, maxed=have>=(it.max||1);
+    const li=document.createElement('li');
+    const info=document.createElement('div'); info.className='iinfo';
+    const nm=document.createElement('div'); nm.className='iname'; nm.textContent=it.name+(have?` · 보유 ${have}`:'');
+    const ds=document.createElement('div'); ds.className='idesc'; ds.textContent=it.desc+(it.income?` 해마다 엽전 약 ${it.income}냥.`:'');
+    info.append(nm,ds);
+    const b=document.createElement('button'); b.type='button'; b.className='btn small';
+    b.textContent=maxed?'다 갖춤':`${it.price}냥`; b.disabled=maxed||s.coin<it.price;
+    b.addEventListener('click',()=>buyItem(it.id));
+    li.append(info,b); list.appendChild(li);
+  });
+  const own=ITEMS.filter(it=>s.items[it.id]).map(it=>`${it.name}${s.items[it.id]>1?' ×'+s.items[it.id]:''}`);
+  $('#shopOwn').textContent=own.length?`가진 것: ${own.join(', ')}`:'아직 산 물건이 없습니다.';
+}
+function openShop(){ if(!S||ended) return; shopOpen=true; clearTimeout(timer); renderShop(); $('#shop').hidden=false; $('#btnShop').setAttribute('aria-expanded','true'); }
+function closeShop(){ if(!shopOpen&&$('#shop').hidden) return; shopOpen=false; $('#shop').hidden=true; $('#btnShop').setAttribute('aria-expanded','false'); if(S&&!ended) schedule(); }
+$('#btnShop').addEventListener('click',()=>{ if(shopOpen) closeShop(); else openShop(); });
+$('#btnShopClose').addEventListener('click',closeShop);
+
+/* ---------- 업적 ---------- */
+const ACHK='joseon-ach-v1';
+function loadAch(){ try{return JSON.parse(localStorage.getItem(ACHK)||'{}')}catch(e){return {}} }
+function saveAch(o){ try{localStorage.setItem(ACHK,JSON.stringify(o))}catch(e){} }
+const eraOf=y=>y<1550?'early':y<1700?'mid':'late';
+const ACH=[
+ {id:'jangwon',name:'장원 급제',desc:'문과에서 장원으로 급제했습니다.',c:s=>s.flags.jangwon},
+ {id:'munkwa',name:'문과 급제',desc:'대과에 급제해 벼슬길에 올랐습니다.',c:s=>s.flags.munkwa},
+ {id:'saenwon',name:'생원 · 진사',desc:'소과에 합격했습니다.',c:s=>s.flags.saenwon},
+ {id:'jap',name:'기술직 관원',desc:'잡과에 합격했습니다.',c:s=>s.flags.jap},
+ {id:'danghang',name:'당상관',desc:'정3품 당상관에 올랐습니다.',c:s=>s.office>=5},
+ {id:'pansa',name:'판서',desc:'정2품 판서에 올랐습니다.',c:s=>s.office>=6},
+ {id:'jeongseung',name:'정승',desc:'정1품 정승에 올랐습니다.',c:s=>s.office>=7},
+ {id:'cheongbaek',name:'청백리',desc:'관직에 있으면서 명예를 높게 지켰습니다.',c:s=>s.office>=3&&s.peak.honor>=85},
+ {id:'climb',name:'신분의 벽을 넘다',desc:'태어난 신분보다 높은 신분이 되었습니다.',c:s=>ST[s.status].r>ST[s.startStatus].r},
+ {id:'freed',name:'노비에서 양인으로',desc:'천민으로 태어나 양인이 되었습니다.',c:s=>s.startStatus==='cheonmin'&&s.status!=='cheonmin'},
+ {id:'cheon2yb',name:'노비가 양반이 되다',desc:'천민으로 태어나 양반의 신분에 이르렀습니다.',c:s=>s.startStatus==='cheonmin'&&s.status==='yangban'},
+ {id:'manumit',name:'속량',desc:'재물을 모아 스스로 몸값을 치렀습니다.',c:s=>s.flags.manumitted},
+ {id:'bought',name:'돈으로 얻은 신분',desc:'공명첩이나 족보로 양반이 되었습니다.',c:s=>s.flags.boughtStatus},
+ {id:'runaway',name:'도망 노비',desc:'신분을 감추고 새 삶을 시작했습니다.',c:s=>s.flags.hidden},
+ {id:'literate',name:'글을 깨친 노비',desc:'천민으로 태어났지만 글을 읽을 줄 알았습니다.',c:s=>s.startStatus==='cheonmin'&&s.flags.literate},
+ {id:'hwangap',name:'회갑',desc:'예순 해를 살았습니다.',c:s=>s.age>=60},
+ {id:'chilsun',name:'칠순',desc:'일흔 해를 살았습니다.',c:s=>s.age>=70},
+ {id:'palsun',name:'팔순',desc:'여든 해를 살았습니다.',c:s=>s.age>=80},
+ {id:'gusun',name:'구순',desc:'아흔 해를 살았습니다.',c:s=>s.age>=90},
+ {id:'bigfam',name:'다복한 집안',desc:'자식을 다섯 이상 두었습니다.',c:s=>s.children>=5},
+ {id:'rich',name:'천냥 부자',desc:'엽전을 300냥 넘게 모았습니다.',c:s=>s.peakCoin>=300},
+ {id:'shopper',name:'장터의 단골',desc:'물건을 열 번 넘게 샀습니다.',c:s=>s.bought>=10},
+ {id:'gaewa',name:'기와집 주인',desc:'기와집을 장만했습니다.',c:s=>s.items.house},
+ {id:'landlord',name:'땅 부자',desc:'논 열 마지기를 두 번 넘게 샀습니다.',c:s=>(s.items.paddy||0)>=2},
+ {id:'scholar',name:'책벌레',desc:'학식이 90에 이르렀습니다.',c:s=>s.peak.learn>=90},
+ {id:'fame',name:'이름을 남기다',desc:'명예가 90에 이르렀습니다.',c:s=>s.peak.honor>=90},
+ {id:'teacher',name:'후학을 기르다',desc:'서당이나 서원에서 가르쳤습니다.',c:s=>s.flags.teacher},
+ {id:'poet',name:'시를 남기다',desc:'지은 시가 사람들 사이에 돌려 읽혔습니다.',c:s=>s.flags.poet},
+ {id:'hyobu',name:'살림을 지킨 아내',desc:'남편을 잃고도 살림을 지켜 칭송을 받았습니다.',c:s=>s.flags.hyobu},
+ {id:'jeongnyeo',name:'정려',desc:'효행으로 정려가 세워졌습니다.',c:s=>s.flags.jeongnyeo},
+ {id:'royaldoc',name:'궁궐의 부름',desc:'의술로 이름이 높아 궁궐에서 불렀습니다.',c:s=>s.flags.royalDoc},
+ {id:'envoy',name:'연경 사행길',desc:'사신 행렬을 따라 연경에 다녀왔습니다.',c:s=>s.flags.envoy},
+ {id:'exile',name:'유배에서 돌아오다',desc:'귀양을 가서 해배되어 돌아왔습니다.',c:s=>s.flags.exileBack},
+ {id:'gunkong',name:'군공',desc:'전란 속에서 공을 세웠습니다.',c:s=>s.flags.gunkong},
+ {id:'pox',name:'마마를 이겨 내다',desc:'천연두를 앓고 살아났습니다.',c:s=>s.flags.pox},
+ {id:'tiger',name:'호환을 피하다',desc:'호랑이가 나온다는 산길을 무사히 다녀왔습니다.',c:s=>s.flags.tiger},
+ {id:'sangpyeong',name:'엽전이 도는 세상',desc:'상평통보가 처음 유통되던 해를 살았습니다.',c:s=>s.used.sangpyeong},
+ {id:'imjin',name:'임진년의 피난민',desc:'임진왜란을 겪고 살아남았습니다.',c:s=>s.used.imjin},
+ {id:'byeongja',name:'병자년의 겨울',desc:'병자호란을 겪었습니다.',c:s=>s.used.byeongja},
+ {id:'famine',name:'대기근을 견디다',desc:'경신대기근이나 을병대기근을 겪었습니다.',c:s=>s.used.gyeongsin||s.used.eulbyeong},
+ {id:'gongfree',name:'공노비 해방',desc:'1801년 공노비 해방으로 자유의 몸이 되었습니다.',c:s=>s.flags.gongFree},
+ {id:'gabo',name:'신분제의 끝',desc:'갑오개혁으로 신분제가 사라지는 때를 살았습니다.',c:s=>s.used.gabo},
+ {id:'goodbye',name:'조선의 마지막',desc:'1910년까지 살아 조선의 끝을 보았습니다.',c:s=>s.used.gyeongsul},
+ {id:'first',name:'첫 번째 생',desc:'한 사람의 일생을 끝까지 살았습니다.',end:1,c:()=>true},
+ {id:'lives10',name:'열 번의 생',desc:'열 사람의 일생을 마쳤습니다.',end:1,c:(s,m)=>m.length>=10},
+ {id:'all4',name:'네 가지 신분',desc:'양반, 중인, 상민, 천민으로 각각 한 번씩 태어났습니다.',end:1,c:(s,m)=>['yangban','jungin','sangmin','cheonmin'].every(k=>m.some(r=>r.start===k))},
+ {id:'eras3',name:'세 시대',desc:'전기, 중기, 후기에 한 번씩 태어났습니다.',end:1,c:(s,m)=>['early','mid','late'].every(k=>m.some(r=>eraOf(r.born)===k))}
+];
+function checkAch(s,atEnd){
+  if(!s) return;
+  const un=loadAch(); let changed=false;
+  const mem=atEnd?loadMem().concat([{start:s.startStatus,born:s.birthYear}]):[];
+  ACH.forEach(a=>{
+    if(un[a.id]||(a.end&&!atEnd)) return;
+    let ok=false; try{ ok=!!a.c(s,mem); }catch(e){}
+    if(!ok) return;
+    un[a.id]={t:Date.now(),who:s.name}; changed=true; (s.newAch=s.newAch||[]).push(a.id);
+    if(!atEnd) addLog({tag:'업적',cls:'status',parts:[`업적 달성 · ${a.name}`]});
+    toast(`업적 달성 · ${a.name}`);
+  });
+  if(changed) saveAch(un);
+}
+let toastT;
+function toast(msg){ const el=$('#toast'); el.textContent=msg; el.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{el.hidden=true;},3600); }
+function trackPeak(s){ for(const k in s.stats) s.peak[k]=Math.max(s.peak[k]||0,s.stats[k]); }
+function renderEndAch(nb,s){
+  if(!s.newAch||!s.newAch.length) return;
+  const h=document.createElement('h3'); h.textContent='이번 생에서 얻은 업적'; h.style.cssText='font-size:20px;margin:22px 0 8px'; nb.appendChild(h);
+  const ul=document.createElement('ul'); ul.className='newach';
+  s.newAch.forEach(id=>{ const a=ACH.find(x=>x.id===id); if(!a) return;
+    const li=document.createElement('li'); const b=document.createElement('b'); b.textContent=a.name; const d=document.createElement('span'); d.textContent=a.desc; li.append(b,d); ul.appendChild(li); });
+  nb.appendChild(ul);
+}
+function renderAch(){
+  const un=loadAch(), el=$('#alist'); el.textContent=''; let n=0;
+  ACH.forEach(a=>{
+    const got=un[a.id]; if(got) n++;
+    const li=document.createElement('li'); li.className=got?'got':'';
+    const nm=document.createElement('div'); nm.className='aname'; nm.textContent=a.name;
+    const ds=document.createElement('div'); ds.className='adesc'; ds.textContent=a.desc;
+    const st=document.createElement('div'); st.className='astate'; st.textContent=got?`${got.who} · ${new Date(got.t).toLocaleDateString('ko-KR')}`:'잠김';
+    li.append(nm,ds,st); el.appendChild(li);
+  });
+  $('#acount').textContent=`${n} / ${ACH.length}`;
+}
+
+/* ---------- 시작 ---------- */
+renderDist(); homeNote(); show('home');
+</script>
+</body>
+</html>
